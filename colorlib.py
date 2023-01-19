@@ -1,4 +1,6 @@
 from random import randint
+
+# ! ЧЁ ЭТО ТУТ ДЕЛАЕТ?
 #if player._pos_x >= food._pos_x and player._pos_x < food._pos_x + food._size_x and player._pos_y >= food._pos_y and player._pos_y < food._pos_y + food._size_y
 
 white = (255, 255, 255)
@@ -16,5 +18,3 @@ def RandomColor():
     g = randint(0, 255)
     b = randint(0, 255)
     return(r,g,b)
-
-
