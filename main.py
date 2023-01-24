@@ -11,11 +11,12 @@ from screen_module import init as init_screen
 from GameObj_module import *
 from GUI_module import GuiLabel, Canvas, HorizontalAlignment, VerticalAlignment, obvodka, Button
 from sounds_module import init as mixerinit, Sound, Sounds, Music, Tracks
-from spritre_module import Sprites, BackGrounds
+from sprite_module import Sprites, BackGrounds
 
 pygame.init()
 init_screen()
 mixerinit()
+
 #Наблюдатель
 class GameObserver:
     secs: float = 0
@@ -55,7 +56,7 @@ class GameObserver:
 
 class GameUi:
     _labelFont = pygame.font.SysFont('Arial', 18)
-    #Очки и здоровье
+    #TODO: Очки и здоровье
     game_canvas: Canvas = Canvas()
 
     def __init__(self) -> None:
@@ -64,6 +65,7 @@ class GameUi:
         pass
     def draw_game(self):
         pass 
+
 player = Player(start_pos=(scr_width * 0.5, scr_height * 0.9 ), start_size=(50,50), sprite=Sprites.player)
 gameui = GameUi()
 
@@ -85,6 +87,7 @@ def game_loop():
         player.move(Direction.Down)          
 
     player.draw()
+
 def game_over_loop():
     screen.fill(Colors.black)
     gameui.draw_gameover()
@@ -97,11 +100,10 @@ def main_menu_loop():
 def win_screen_loop():
     screen.fill(Colors.black)
     gameui.draw_win()
-  
+
 while True:
     get_events()
-#events
-    #Behaivor
+
     if GameObserver.game_is_active:
         if not GameObserver.game_is_paused:
             if not GameObserver.player_is_win:
@@ -114,10 +116,8 @@ while True:
         else:
             pass
     else:
-        main_menu_loop() 
-
-                      
-
+        main_menu_loop()
+    
     pygame.display.update()  
     Time.update()
 

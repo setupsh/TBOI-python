@@ -1,16 +1,18 @@
 import pygame
-import random
 import colorlib as Colors
 from typing import List, Tuple
 from screen_module import *
 from enum import Enum
 from time_module import Time
-from spritre_module import Sprites
+from sprite_module import Sprites
+
+
 class Direction(Enum):
     Up = 0
     Down = 1
     Right = 2
     Left = 3
+
 
 class GameObject:   
     _pos_x: int = 0
@@ -34,15 +36,14 @@ class GameObject:
     def set_color(self,color: tuple[int, int, int]):
         self._color = color           
 
-
     rect: pygame.Rect = None
-
-
     def draw(self):
         self.rect = pygame.draw.rect(surface=screen, color=self._color, rect=(self._pos_x,
          self._pos_y,
          self._size_x,
          self._size_y ))
+
+
 class GameObjSprites(GameObject):
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image):
         super().__init__(start_pos, start_size, Colors.black)
@@ -59,6 +60,7 @@ class GameObjSprites(GameObject):
         self.set_collider()
         screen.blit(self.sprite, self.collider)  
 
+
 class Particle(GameObjSprites):
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image, lifetime: float):
         self.lifetime = lifetime
@@ -73,8 +75,9 @@ class Particle(GameObjSprites):
     def scale(self):
         pygame.transform.scale(self.sprite, (1,1))    
 
-    #def draw(self):
-    #    screen.blit(self.sprite) 
+    def draw(self):
+       screen.blit(self.sprite) 
+
 
 class Particles:
     particle_list: List[Particle] = []
@@ -134,8 +137,10 @@ class Projectiles:
     def draw(self):
         for i in self.projectiles_list:
             i.draw()
-         
+
+
 class Player(GameObjSprites):
+    current_speed: float = 0
     speed = float(200.0)
     shoot_cooldown = 1
     can_shoot: bool = True
@@ -172,6 +177,7 @@ class Player(GameObjSprites):
     def try_shoot(self, projectiles:Projectiles):
         if self.can_shoot:
             projectiles.append_projectile(Projectile([self._pos_x , self._pos_y - 35], [50,50], sprite=Sprites.bullet, speed=100, direction=Direction.Up, shoot_player=True))
+
 
 class Enemy(GameObjSprites):
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image, health: int = 1):

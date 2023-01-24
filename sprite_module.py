@@ -16,4 +16,3 @@ class Sprites:
     floor = load_sprite('\\floor.png')
 class BackGrounds:
     pass
-
