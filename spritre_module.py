@@ -9,14 +9,11 @@ def load_sprite(filename: str) -> pygame.image:
 
 class Sprites:
     player = load_sprite('\\player.png')
-    enemy_circle = load_sprite('\\enemy_circle.png')    
-    enemy_cube = load_sprite('\\enemy_cube.png')    
-    enemy_triangle = load_sprite('\\enemy_triangle.png')
-    bullet = load_sprite('\\bullet.png')
-    explosion = load_sprite('\\eplosion.png')
-    boss = load_sprite('\\boss.png')
-    list_enemies = (enemy_circle, enemy_cube, enemy_triangle)   
-
+    easy_enemy = load_sprite('\\easy_enemy.png')    
+    normal_enemy = load_sprite('\\normal_enemy.png')    
+    hard_enemy = load_sprite('\\hard_enemy.png')
+    block = load_sprite('\\block.png')  
+    floor = load_sprite('\\floor.png')
 class BackGrounds:
-    space = load_sprite('\\ick.png')
+    pass
 

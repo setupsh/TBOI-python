@@ -99,11 +99,11 @@ class Particles:
 
          
 class Projectile(GameObjSprites):
-    def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: Sprites.bullet, speed: int, direction: Direction, shoot_player: bool):
+    def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], speed: int, direction: Direction, shoot_player: bool):
         self.shoot_player = shoot_player
         self.speed = speed
         self.direction = direction
-        super().__init__(start_pos, start_size, sprite)
+        super().__init__(start_pos, start_size)
     def move(self):
         match self.direction:
             case Direction.Up:

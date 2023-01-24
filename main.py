@@ -64,7 +64,6 @@ class GameUi:
         pass
     def draw_game(self):
         pass 
-enemy = Enemy([50,50], [50,50], sprite=Sprites.boss, health=1)
 player = Player(start_pos=(scr_width * 0.5, scr_height * 0.9 ), start_size=(50,50), sprite=Sprites.player)
 gameui = GameUi()
 
