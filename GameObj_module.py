@@ -159,8 +159,11 @@ class Player(GameObjSprites):
             case Direction.Down:
                 self.move_down()        
 
+    right_acceleration: float = 0
     def move_right(self):
-        self._pos_x += self.speed * Time.delta_time
+        self.right_acceleration += Time.delta_time
+        if self.right_acceleration >= 1:
+            self.right_acceleration = 1
 
     def move_left(self):
         self._pos_x -= self.speed * Time.delta_time
@@ -170,6 +173,9 @@ class Player(GameObjSprites):
 
     def move_down(self):
         self._pos_y += self.speed * Time.delta_time         
+
+    def update(self):
+        self._pos_x += self.right_acceleration * self.speed
 
     def draw(self):
         super().draw()

@@ -79,6 +79,11 @@ def game_loop():
 
     if (Inpunting.is_key_right_pressed):
         player.move(Direction.Right)
+    else:
+        # TODO: может в Update?
+        player.right_acceleration -= Time.delta_time
+        if player.right_acceleration < 0:
+            player.right_acceleration = 0
 
     if (Inpunting.is_key_up_pressed):
         player.move(Direction.Up)
@@ -86,6 +91,7 @@ def game_loop():
     if (Inpunting.is_key_down_pressed):
         player.move(Direction.Down)          
 
+    player.update()
     player.draw()
 
 def game_over_loop():
