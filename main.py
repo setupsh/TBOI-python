@@ -65,6 +65,7 @@ class GameUi:
         pass
     def draw_game(self):
         pass 
+
 projectiles = Projectiles()
 player = Player(start_pos=(scr_width * 0.5, scr_height * 0.9 ), start_size=(50,50), sprite=Sprites.player)
 gameui = GameUi()
@@ -103,16 +104,16 @@ def game_loop():
             player.down_acceleration = 0       
 
     if (Inpunting.is_key_up_pressed):
-        player.try_shoot(Direction.Up)
+        player.try_shoot(Direction.Up, projectiles)
 
     if (Inpunting.is_key_down_pressed):
-        player.try_shoot(Direction.Down)
+        player.try_shoot(Direction.Down, projectiles)
 
     if (Inpunting.is_key_left_pressed):
-        player.try_shoot(Direction.Left)
+        player.try_shoot(Direction.Left, projectiles)
 
     if (Inpunting.is_key_right_pressed):
-        player.try_shoot(Direction.Right)                                             
+        player.try_shoot(Direction.Right, projectiles)                                             
 
     player.update()
     player.draw()

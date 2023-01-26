@@ -125,19 +125,22 @@ class Projectile(GameObjSprites):
 
 class Projectiles:
     projectiles_list: List[Projectile] = []
+    
     def __init__(self) -> None:
         pass                     
 
     def remove_projectile(self, projectile: Projectile):
         self.projectiles_list.remove(projectile)
+    
+    def append_projectile(self, projectile: Projectile):
+        self.projectiles_list.append(projectile)
+
     def move(self):
         for i in self.projectiles_list:
             i.move()
             if i.reach_up() or i.reach_down():
                 self.remove_projectile(i)
-    def append_projectile(self, projectile: Projectile):
-        self.projectiles_list.append(projectile)
-
+    
     def draw(self):
         for i in self.projectiles_list:
             i.draw()
@@ -198,10 +201,7 @@ class Player(GameObjSprites):
 
     def try_shoot(self, direction: Direction, projectiles:Projectiles):
         if self.can_shoot:
-            self.shoot(direction)     
-
-    def shoot(self, direction: Direction):
-        Projectiles.append_projectile(Projectile([self._pos_x , self._pos_y - 35], [50,50], sprite=Sprites.bullet, speed=100, direction=direction, shoot_player=True))
+            projectiles.append_projectile(Projectile([self._pos_x , self._pos_y - 35], [50,50], sprite=Sprites.bullet, speed=100, direction=direction, shoot_player=True))
                    
 class Enemy(GameObjSprites):
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image, health: int = 1):
