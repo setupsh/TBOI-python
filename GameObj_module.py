@@ -141,7 +141,7 @@ class Projectiles:
 
 class Player(GameObjSprites):
     current_speed: float = 0
-    speed = float(5)
+    speed: float = 5
     right_acceleration: float = 0
     left_acceleration: float = 0
     up_acceleration: float = 0
@@ -185,11 +185,10 @@ class Player(GameObjSprites):
         
 
     def update(self):
-        self._pos_x += ((self.right_acceleration) ** 2) * self.speed
-        self._pos_x -= ((self.left_acceleration) ** 2) * self.speed
-        self._pos_y += ((self.down_acceleration) ** 2) * self.speed
-        self._pos_y -= ((self.up_acceleration) ** 2) * self.speed
-
+        self._pos_x += ((self.right_acceleration) ** 0.5) * self.speed
+        self._pos_x -= ((self.left_acceleration) ** 0.5) * self.speed
+        self._pos_y += ((self.down_acceleration) ** 0.5) * self.speed
+        self._pos_y -= ((self.up_acceleration) ** 0.5) * self.speed
 
     def draw(self):
         super().draw()
