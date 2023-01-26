@@ -65,7 +65,7 @@ class GameUi:
         pass
     def draw_game(self):
         pass 
-
+projectiles = Projectiles()
 player = Player(start_pos=(scr_width * 0.5, scr_height * 0.9 ), start_size=(50,50), sprite=Sprites.player)
 gameui = GameUi()
 
@@ -74,33 +74,45 @@ def game_loop():
     GameObserver.secs += Time.delta_time
     GameObserver.timer = int(GameObserver.secs)
 
-    if (Inpunting.is_key_left_pressed):
+    if (Inpunting.is_key_a_pressed):
         player.move(Direction.Left)
     else:
         player.left_acceleration -= Time.delta_time * 3
         if player.left_acceleration < 0:
             player.left_acceleration = 0
 
-    if (Inpunting.is_key_right_pressed):
+    if (Inpunting.is_key_d_pressed):
         player.move(Direction.Right)
     else:
         player.right_acceleration -= Time.delta_time * 3
         if player.right_acceleration < 0:
             player.right_acceleration = 0
 
-    if (Inpunting.is_key_up_pressed):
+    if (Inpunting.is_key_w_pressed):
         player.move(Direction.Up)
     else:
         player.up_acceleration -= Time.delta_time * 3
         if player.up_acceleration < 0:
             player.up_acceleration = 0        
 
-    if (Inpunting.is_key_down_pressed):
+    if (Inpunting.is_key_s_pressed):
         player.move(Direction.Down)
     else:
         player.down_acceleration -= Time.delta_time * 3
         if player.down_acceleration < 0:
-            player.down_acceleration = 0                  
+            player.down_acceleration = 0       
+
+    if (Inpunting.is_key_up_pressed):
+        player.try_shoot(Direction.Up)
+
+    if (Inpunting.is_key_down_pressed):
+        player.try_shoot(Direction.Down)
+
+    if (Inpunting.is_key_left_pressed):
+        player.try_shoot(Direction.Left)
+
+    if (Inpunting.is_key_right_pressed):
+        player.try_shoot(Direction.Right)                                             
 
     player.update()
     player.draw()

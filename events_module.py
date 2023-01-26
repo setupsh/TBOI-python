@@ -8,6 +8,11 @@ class Inpunting:
     is_key_null_pressed: bool = False
     is_key_enter_pressed: bool = False
     is_key_esc_pressed: bool = False
+    is_key_w_pressed: bool = False
+    is_key_s_pressed: bool = False
+    is_key_a_pressed: bool = False
+    is_key_d_pressed: bool = False
+
 def get():
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -27,6 +32,18 @@ def get():
             if event.key == pygame.K_UP:
                 Inpunting.is_key_up_pressed = True
 
+            if event.key == pygame.K_w:
+                Inpunting.is_key_w_pressed = True 
+
+            if event.key == pygame.K_d:
+                Inpunting.is_key_d_pressed = True
+
+            if event.key == pygame.K_s:
+                Inpunting.is_key_s_pressed = True
+
+            if event.key == pygame.K_a:
+                Inpunting.is_key_a_pressed = True       
+
             if event.key == pygame.K_RETURN:
                 Inpunting.is_key_enter_pressed = True 
 
@@ -45,6 +62,18 @@ def get():
 
             if event.key == pygame.K_UP:
                 Inpunting.is_key_up_pressed = False 
+
+            if event.key == pygame.K_w:
+                Inpunting.is_key_w_pressed = False
+
+            if event.key == pygame.K_d:
+                Inpunting.is_key_d_pressed = False
+
+            if event.key == pygame.K_s:
+                Inpunting.is_key_s_pressed = False
+
+            if event.key == pygame.K_a:
+                Inpunting.is_key_a_pressed = False     
 
             if event.key == pygame.K_0:
                 Inpunting.is_key_null_pressed = False

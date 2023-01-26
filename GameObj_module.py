@@ -113,6 +113,10 @@ class Projectile(GameObjSprites):
                 self._pos_y -= self.speed * Time.delta_time 
             case Direction.Down:
                 self._pos_y += self.speed * Time.delta_time
+            case Direction.Left:
+                self._pos_x -= self.speed * Time.delta_time 
+            case Direction.Right:
+                self._pos_x += self.speed * Time.delta_time                
     def reach_down(self) -> bool:
         return self._pos_y > scr_height
     def reach_up(self) -> bool:
@@ -183,7 +187,6 @@ class Player(GameObjSprites):
         if self.down_acceleration >= 1:
             self.down_acceleration = 1
         
-
     def update(self):
         self._pos_x += ((self.right_acceleration) ** 0.5) * self.speed
         self._pos_x -= ((self.left_acceleration) ** 0.5) * self.speed
@@ -193,11 +196,13 @@ class Player(GameObjSprites):
     def draw(self):
         super().draw()
 
-    def try_shoot(self, projectiles:Projectiles):
+    def try_shoot(self, direction: Direction, projectiles:Projectiles):
         if self.can_shoot:
-            projectiles.append_projectile(Projectile([self._pos_x , self._pos_y - 35], [50,50], sprite=Sprites.bullet, speed=100, direction=Direction.Up, shoot_player=True))
+            self.shoot(direction)     
 
-
+    def shoot(self, direction: Direction):
+        Projectiles.append_projectile(Projectile([self._pos_x , self._pos_y - 35], [50,50], sprite=Sprites.bullet, speed=100, direction=direction, shoot_player=True))
+                   
 class Enemy(GameObjSprites):
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image, health: int = 1):
         super().__init__(start_pos, start_size, sprite)
