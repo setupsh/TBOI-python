@@ -77,28 +77,28 @@ def game_loop():
     if (Inpunting.is_key_left_pressed):
         player.move(Direction.Left)
     else:
-        player.left_acceleration -= Time.delta_time
+        player.left_acceleration -= Time.delta_time * 3
         if player.left_acceleration < 0:
             player.left_acceleration = 0
 
     if (Inpunting.is_key_right_pressed):
         player.move(Direction.Right)
     else:
-        player.right_acceleration -= Time.delta_time
+        player.right_acceleration -= Time.delta_time * 3
         if player.right_acceleration < 0:
             player.right_acceleration = 0
 
     if (Inpunting.is_key_up_pressed):
         player.move(Direction.Up)
     else:
-        player.up_acceleration -= Time.delta_time
+        player.up_acceleration -= Time.delta_time * 3
         if player.up_acceleration < 0:
             player.up_acceleration = 0        
 
     if (Inpunting.is_key_down_pressed):
         player.move(Direction.Down)
     else:
-        player.down_acceleration -= Time.delta_time
+        player.down_acceleration -= Time.delta_time * 3
         if player.down_acceleration < 0:
             player.down_acceleration = 0                  
 
