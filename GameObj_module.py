@@ -102,11 +102,12 @@ class Particles:
 
          
 class Projectile(GameObjSprites):
-    def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], speed: int, direction: Direction, shoot_player: bool):
+    def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image, speed: int, direction: Direction, shoot_player: bool):
         self.shoot_player = shoot_player
         self.speed = speed
         self.direction = direction
-        super().__init__(start_pos, start_size)
+        super().__init__(start_pos, start_size, sprite)
+    
     def move(self):
         match self.direction:
             case Direction.Up:
@@ -117,8 +118,10 @@ class Projectile(GameObjSprites):
                 self._pos_x -= self.speed * Time.delta_time 
             case Direction.Right:
                 self._pos_x += self.speed * Time.delta_time                
+    
     def reach_down(self) -> bool:
         return self._pos_y > scr_height
+    
     def reach_up(self) -> bool:
         return self._pos_y < 0    
 
@@ -135,7 +138,7 @@ class Projectiles:
     def append_projectile(self, projectile: Projectile):
         self.projectiles_list.append(projectile)
 
-    def move(self):
+    def update(self):
         for i in self.projectiles_list:
             i.move()
             if i.reach_up() or i.reach_down():
@@ -201,7 +204,7 @@ class Player(GameObjSprites):
 
     def try_shoot(self, direction: Direction, projectiles:Projectiles):
         if self.can_shoot:
-            projectiles.append_projectile(Projectile([self._pos_x , self._pos_y - 35], [50,50], sprite=Sprites.bullet, speed=100, direction=direction, shoot_player=True))
+            projectiles.append_projectile(Projectile([self._pos_x , self._pos_y], [50,50], sprite=Sprites.player, speed=100, direction=direction, shoot_player=True))
                    
 class Enemy(GameObjSprites):
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image, health: int = 1):
