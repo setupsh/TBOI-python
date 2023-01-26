@@ -141,7 +141,11 @@ class Projectiles:
 
 class Player(GameObjSprites):
     current_speed: float = 0
-    speed = float(200.0)
+    speed = float(5)
+    right_acceleration: float = 0
+    left_acceleration: float = 0
+    up_acceleration: float = 0
+    down_acceleration: float = 0
     shoot_cooldown = 1
     can_shoot: bool = True
 
@@ -159,23 +163,33 @@ class Player(GameObjSprites):
             case Direction.Down:
                 self.move_down()        
 
-    right_acceleration: float = 0
     def move_right(self):
         self.right_acceleration += Time.delta_time
         if self.right_acceleration >= 1:
             self.right_acceleration = 1
 
     def move_left(self):
-        self._pos_x -= self.speed * Time.delta_time
+        self.left_acceleration += Time.delta_time
+        if self.left_acceleration >= 1:
+            self.left_acceleration = 1
 
     def move_up(self):
-        self._pos_y -= self.speed * Time.delta_time
+        self.up_acceleration += Time.delta_time
+        if self.up_acceleration >= 1:
+            self.up_acceleration = 1
 
     def move_down(self):
-        self._pos_y += self.speed * Time.delta_time         
+        self.down_acceleration += Time.delta_time
+        if self.down_acceleration >= 1:
+            self.down_acceleration = 1
+        
 
     def update(self):
         self._pos_x += self.right_acceleration * self.speed
+        self._pos_x -= self.left_acceleration * self.speed
+        self._pos_y += self.down_acceleration * self.speed
+        self._pos_y -= self.up_acceleration * self.speed
+
 
     def draw(self):
         super().draw()
