@@ -204,7 +204,7 @@ class Player(GameObjSprites):
 
     def try_shoot(self, direction: Direction, projectiles:Projectiles):
         if self.can_shoot:
-            projectiles.append_projectile(Projectile([self._pos_x , self._pos_y], [50,50], sprite=Sprites.player, speed=100, direction=direction, shoot_player=True))
+            projectiles.append_projectile(Projectile([self._pos_x , self._pos_y], [50,50], sprite=Sprites.bullet, speed=100, direction=direction, shoot_player=True))
                    
 class Enemy(GameObjSprites):
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image, health: int = 1):
