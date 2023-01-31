@@ -102,10 +102,12 @@ class Particles:
 
          
 class Projectile(GameObjSprites):
-    def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image, speed: int, direction: Direction, shoot_player: bool):
+    def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image, speed: int, lifetime: float, direction: Direction, shoot_player: bool):
         self.shoot_player = shoot_player
         self.speed = speed
         self.direction = direction
+        self.lifetime = lifetime
+        self.destroy_on_next_frame = False
         super().__init__(start_pos, start_size, sprite)
     
     def move(self):
@@ -123,7 +125,23 @@ class Projectile(GameObjSprites):
         return self._pos_y > scr_height
     
     def reach_up(self) -> bool:
-        return self._pos_y < 0    
+        return self._pos_y < 0
+
+    def reach_right(self) -> bool:
+        return self._pos_x > scr_width
+
+    def reach_left(self) -> bool:
+        return self._pos_x < 0    
+    
+    def update(self):
+        self.move()
+        if self.reach_down() or self.reach_up() or self.reach_right() or self.reach_left():
+            self.destroy_on_next_frame = True
+        self.lifetime -= Time.delta_time
+        if self.lifetime <= 0:
+            self.destroy_on_next_frame = True     
+
+
 
 
 class Projectiles:
@@ -140,9 +158,9 @@ class Projectiles:
 
     def update(self):
         for i in self.projectiles_list:
-            i.move()
-            if i.reach_up() or i.reach_down():
-                self.remove_projectile(i)
+            i.update()#lifetime
+            if i.destroy_on_next_frame:
+                self.projectiles_list.remove(i)
     
     def draw(self):
         for i in self.projectiles_list:
@@ -156,10 +174,10 @@ class Player(GameObjSprites):
     # Shooting
     _can_shoot: bool = True
     _cooldown_timer: float = 0.0
-    shoot_cooldown: float = 1.0
-    bullet_lifetime: float = 1.0
-    bullet_speed: float = 5.0
-    bullet_size: float = 3.0
+    shoot_cooldown: float = 0.3
+    bullet_lifetime: float = 0.3
+    bullet_speed: int = 500
+    bullet_size: int = 25
 
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image):
         super().__init__(start_pos, start_size, sprite)
@@ -204,13 +222,19 @@ class Player(GameObjSprites):
         self._pos_x -= ((self.left_acceleration) ** 0.5) * self._speed
         self._pos_y += ((self.down_acceleration) ** 0.5) * self._speed
         self._pos_y -= ((self.up_acceleration) ** 0.5) * self._speed
+        if self._can_shoot == False:
+            self._cooldown_timer -= Time.delta_time
+            if self._cooldown_timer <= 0:
+                self._can_shoot = True
 
     def draw(self):
         super().draw()
 
     def try_shoot(self, direction: Direction, projectiles:Projectiles):
-        if self.can_shoot:
-            projectiles.append_projectile(Projectile([self._pos_x , self._pos_y], [50,50], sprite=Sprites.bullet, speed=100, direction=direction, shoot_player=True))
+        if self._can_shoot:
+            projectiles.append_projectile(Projectile([self._pos_x , self._pos_y], [self.bullet_size,self.bullet_size], sprite=Sprites.bullet, speed=self.bullet_speed, lifetime=self.bullet_lifetime, direction=direction, shoot_player=True))
+            self._can_shoot = False
+            self._cooldown_timer = self.shoot_cooldown
                    
 class Enemy(GameObjSprites):
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image, health: int = 1):
