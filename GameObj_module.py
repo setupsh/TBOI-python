@@ -139,9 +139,7 @@ class Projectile(GameObjSprites):
             self.destroy_on_next_frame = True
         self.lifetime -= Time.delta_time
         if self.lifetime <= 0:
-            self.destroy_on_next_frame = True     
-
-
+            self.destroy_on_next_frame = True
 
 
 class Projectiles:
@@ -158,9 +156,10 @@ class Projectiles:
 
     def update(self):
         for i in self.projectiles_list:
-            i.update()#lifetime
             if i.destroy_on_next_frame:
                 self.projectiles_list.remove(i)
+            else:
+                i.update()
     
     def draw(self):
         for i in self.projectiles_list:
@@ -235,7 +234,12 @@ class Player(GameObjSprites):
             projectiles.append_projectile(Projectile([self._pos_x , self._pos_y], [self.bullet_size,self.bullet_size], sprite=Sprites.bullet, speed=self.bullet_speed, lifetime=self.bullet_lifetime, direction=direction, shoot_player=True))
             self._can_shoot = False
             self._cooldown_timer = self.shoot_cooldown
-                   
+
+
+# TODO:
+    # * Random-mover - просто мечется в рандомные точки на карте
+    # * Chaser - преследует игрока по карте
+    # * Shooter - стреляет по направлению в игрока
 class Enemy(GameObjSprites):
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image, health: int = 1):
         super().__init__(start_pos, start_size, sprite)
