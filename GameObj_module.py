@@ -150,14 +150,16 @@ class Projectiles:
 
 
 class Player(GameObjSprites):
-    current_speed: float = 0
-    speed: float = 5
-    right_acceleration: float = 0
-    left_acceleration: float = 0
-    up_acceleration: float = 0
-    down_acceleration: float = 0
-    shoot_cooldown = 1
-    can_shoot: bool = True
+    # Movement
+    _speed: float = 5.0
+
+    # Shooting
+    _can_shoot: bool = True
+    _cooldown_timer: float = 0.0
+    shoot_cooldown: float = 1.0
+    bullet_lifetime: float = 1.0
+    bullet_speed: float = 5.0
+    bullet_size: float = 3.0
 
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image):
         super().__init__(start_pos, start_size, sprite)
@@ -173,31 +175,35 @@ class Player(GameObjSprites):
             case Direction.Down:
                 self.move_down()        
 
+    right_acceleration: float = 0
     def move_right(self):
         self.right_acceleration += Time.delta_time * 2
         if self.right_acceleration >= 1:
             self.right_acceleration = 1
 
+    left_acceleration: float = 0
     def move_left(self):
         self.left_acceleration += Time.delta_time * 2
         if self.left_acceleration >= 1:
             self.left_acceleration = 1
 
+    up_acceleration: float = 0
     def move_up(self):
         self.up_acceleration += Time.delta_time * 2
         if self.up_acceleration >= 1:
             self.up_acceleration = 1
 
+    down_acceleration: float = 0
     def move_down(self):
         self.down_acceleration += Time.delta_time * 2
         if self.down_acceleration >= 1:
             self.down_acceleration = 1
         
     def update(self):
-        self._pos_x += ((self.right_acceleration) ** 0.5) * self.speed
-        self._pos_x -= ((self.left_acceleration) ** 0.5) * self.speed
-        self._pos_y += ((self.down_acceleration) ** 0.5) * self.speed
-        self._pos_y -= ((self.up_acceleration) ** 0.5) * self.speed
+        self._pos_x += ((self.right_acceleration) ** 0.5) * self._speed
+        self._pos_x -= ((self.left_acceleration) ** 0.5) * self._speed
+        self._pos_y += ((self.down_acceleration) ** 0.5) * self._speed
+        self._pos_y -= ((self.up_acceleration) ** 0.5) * self._speed
 
     def draw(self):
         super().draw()
