@@ -168,7 +168,7 @@ class Projectiles:
 
 class Player(GameObjSprites):
     # Movement
-    _speed: float = 5.0
+    _speed: float = 3.0
 
     # Shooting
     _can_shoot: bool = True
@@ -231,7 +231,7 @@ class Player(GameObjSprites):
 
     def try_shoot(self, direction: Direction, projectiles:Projectiles):
         if self._can_shoot:
-            projectiles.append_projectile(Projectile([self._pos_x , self._pos_y], [self.bullet_size,self.bullet_size], sprite=Sprites.bullet, speed=self.bullet_speed, lifetime=self.bullet_lifetime, direction=direction, shoot_player=True))
+            projectiles.append_projectile(Projectile([self._pos_x + self._size_x * 0.5 - self.bullet_size * 0.5 , self._pos_y + self._size_y * 0.5 - self.bullet_size * 0.5], [self.bullet_size,self.bullet_size], sprite=Sprites.bullet, speed=self.bullet_speed, lifetime=self.bullet_lifetime, direction=direction, shoot_player=True))
             self._can_shoot = False
             self._cooldown_timer = self.shoot_cooldown
 
