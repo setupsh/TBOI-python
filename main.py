@@ -66,6 +66,7 @@ class GameUi:
         pass 
 enemy = Enemy([50,50], [50,50], sprite=Sprites.boss, health=1)
 player = Player(start_pos=(scr_width * 0.5, scr_height * 0.9 ), start_size=(50,50), sprite=Sprites.player)
+test_enemy = PsychoMover(start_pos=(scr_width * 0.1, scr_height * 0.9 ), start_size=(50,50), sprite=Sprites.hard_enemy)
 gameui = GameUi()
 
 def game_loop():
@@ -86,6 +87,7 @@ def game_loop():
         player.move(Direction.Down)          
 
     player.draw()
+
 def game_over_loop():
     screen.fill(Colors.black)
     gameui.draw_gameover()
@@ -101,8 +103,7 @@ def win_screen_loop():
   
 while True:
     get_events()
-#events
-    #Behaivor
+
     if GameObserver.game_is_active:
         if not GameObserver.game_is_paused:
             if not GameObserver.player_is_win:
@@ -117,12 +118,5 @@ while True:
     else:
         main_menu_loop() 
 
-                      
-
     pygame.display.update()  
     Time.update()
-
-
-    
-
-

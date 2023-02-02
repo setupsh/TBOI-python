@@ -136,6 +136,10 @@ class Projectiles:
             i.draw()
          
 class Player(GameObjSprites):
+    # Base stats
+    health: int = 3
+    max_health: int = 3
+
     speed = float(200.0)
     shoot_cooldown = 1
     can_shoot: bool = True
@@ -174,16 +178,52 @@ class Player(GameObjSprites):
             projectiles.append_projectile(Projectile([self._pos_x , self._pos_y - 35], [50,50], sprite=Sprites.bullet, speed=100, direction=Direction.Up, shoot_player=True))
 
 class Enemy(GameObjSprites):
-    def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image, health: int = 1):
+    health: int = 3
+    speed: float = 2.0
+
+    def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image):
         super().__init__(start_pos, start_size, sprite)
+
     def draw(self):
         super().draw()
-    def move(self, direction:Direction, step: int):
-        match direction:
-            case Direction.Left: self._pos_x -= step
-            case Direction.Right: self._pos_x += step
-            case Direction.Down: self._pos_y += step
-            case Direction.Up: self._pos_y -= step    
+
+    def move(self):
+        pass
+
+    def attack(self):
+        pass
+
+    def dead(self):
+        pass
+
+    def check_death(self):
+        if self.health <= 0:
+            self.dead()
+
+    def get_damage(self, value: int):
+        self.health -= value
+        self.check_death()
+    
+    def set_health(self, value: int):
+        self.health = value
+        self.check_death()
+
+    def set_speed(self, value: int):
+        self.speed = value
+
+class PsychoMover(Enemy):
+    health: int = 3
+    damage: int = 1
+    speed: float = 3.0
+
+    def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image):
+        super().__init__(start_pos, start_size, sprite)
+        self.destination = self.get_random_point()
+        print(self.destination)
+
+    def get_random_point(self) -> tuple[int, int]:
+        return (random.randint(0, scr_width), random.randint(0, scr_height))
+
 
 #class Enemies():
 #    enemy_list: List[Enemy] = []
