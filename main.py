@@ -51,9 +51,14 @@ class GameObserver:
     def rect_collide(rect: pygame.Rect, rect2: pygame.Rect) -> bool:
         if not rect or not rect2: return False 
         return rect.colliderect(rect2.left, rect2.top, rect2.width, rect2.height)
+    
     def math_collide(GO1, GO2):
         return (GO1._pos_x >= GO2._pos_x) and (GO1._pos_x < GO2._pos_x + GO2._size_x) and (GO1._pos_y >= GO2._pos_y) and (GO1._pos_y < GO2._pos_y + GO2._size_y)    
 
+    def check_enemy_collision(player: Player, enemy: Enemy):
+        if GameObserver.math_collide(player, enemy):
+            enemy.attack(player)
+        
 class GameUi:
     _labelFont = pygame.font.SysFont('Arial', 18)
     #TODO: Очки и здоровье
@@ -66,6 +71,7 @@ class GameUi:
     def draw_game(self):
         pass 
 
+enemy = PsychoMover([80,80], [50,50], Sprites.easy_enemy)
 projectiles = Projectiles()
 player = Player(start_pos=(scr_width * 0.5, scr_height * 0.9 ), start_size=(50,50), sprite=Sprites.player)
 gameui = GameUi()
@@ -115,10 +121,12 @@ def game_loop():
     if (Inpunting.is_key_right_pressed):
         player.try_shoot(Direction.Right, projectiles)  
 
+    enemy.draw()
     projectiles.update()                                               
     projectiles.draw()
     player.update()
     player.draw()
+    GameObserver.check_enemy_collision(player, enemy)
 
 def game_over_loop():
     screen.fill(Colors.black)

@@ -5,6 +5,7 @@ from screen_module import *
 from enum import Enum
 from time_module import Time
 from sprite_module import Sprites
+import random
 
 
 class Direction(Enum):
@@ -167,6 +168,8 @@ class Projectiles:
 
 
 class Player(GameObjSprites):
+    health: int = 3
+    max_health: int = 3 
     # Movement
     _speed: float = 3.0
 
@@ -215,6 +218,17 @@ class Player(GameObjSprites):
         self.down_acceleration += Time.delta_time * 2
         if self.down_acceleration >= 1:
             self.down_acceleration = 1
+
+    def get_damage(self, value: int):
+        self.health -= value
+        self.check_death()  
+
+    def check_death(self):
+        if self.health <= 0:
+            self.dead()                
+
+    def dead(self):
+        print('ВЫ ПОГИБЛИ')
         
     def update(self):
         self._pos_x += ((self.right_acceleration) ** 0.5) * self._speed
@@ -241,16 +255,54 @@ class Player(GameObjSprites):
     # * Chaser - преследует игрока по карте
     # * Shooter - стреляет по направлению в игрока
 class Enemy(GameObjSprites):
-    def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image, health: int = 1):
+    health: int = 3
+    speed: float = 2.0
+    damage: int = 1
+
+    def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image):
         super().__init__(start_pos, start_size, sprite)
+
     def draw(self):
         super().draw()
-    def move(self, direction:Direction, step: int):
-        match direction:
-            case Direction.Left: self._pos_x -= step
-            case Direction.Right: self._pos_x += step
-            case Direction.Down: self._pos_y += step
-            case Direction.Up: self._pos_y -= step    
+
+    def move(self):
+        pass
+
+    def attack(self, player: Player):
+        player.get_damage(self.damage)
+        print(1)
+
+    def get_damage(self, value: int):
+        self.health -= value
+        self.check_death()
+
+    def set_speed(self, value: int):
+        self.speed = value
+
+    def set_health(self, value: int):
+        self.health = value
+        self.check_death()
+
+    def check_death(self):
+        if self.health <= 0:
+            self.dead()                
+
+    def dead(self):
+        pass
+
+class PsychoMover(Enemy):
+    health:int = 3
+    speed: float = 3
+
+    def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image):
+        super().__init__(start_pos, start_size, sprite)
+        self.destination = self.get_random_point()
+
+    def get_random_point(self) -> tuple[int, int]:
+        return (random.randint(0, scr_width), random.randint(0, scr_height))
+
+
+
 
 #class Enemies():
 #    enemy_list: List[Enemy] = []
