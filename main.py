@@ -75,7 +75,6 @@ projectiles = Projectiles()
 player = Player(start_pos=(scr_width * 0.5, scr_height * 0.9 ), start_size=(50,50), sprite=Sprites.player)
 
 enemy = PsychoMover([80,80], [50,50], Sprites.easy_enemy)
-enemy2 = PsychoMover([600,80], [50,50], Sprites.hard_enemy)
 enemy.set_target(player)
 
 gameui = GameUi()

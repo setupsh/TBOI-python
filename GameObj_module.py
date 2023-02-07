@@ -264,7 +264,6 @@ class Enemy(GameObjSprites):
     speed: float = 2.0
     damage: int = 1
 
-    # TODO in MAIN branch ---
     target: GameObject = None
 
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image):
@@ -281,13 +280,13 @@ class Enemy(GameObjSprites):
 
     def get_distance_to(self, target: GameObject):
         magnitude = ((target._pos_x - self._pos_x) ** 2 + (target._pos_y - self._pos_y) ** 2) ** 0.5
-        # print(magnitude)
+        print(magnitude)
         return magnitude
 
     def get_direction_to(self, target: GameObject):
         # ! Важно, что это не дает постоянной скорости (чем дальше цель, тем быстрее ее настигает враг)
         direction = (target._pos_x - self._pos_x, target._pos_y - self._pos_y)
-        # print(direction)
+        print(direction)
         return direction
 
     def move(self):
@@ -331,13 +330,11 @@ class PsychoMover(Enemy):
         super().__init__(start_pos, start_size, sprite)
         self.set_target(self.get_random_point())
 
-    # TODO in MAIN branch ---
     def get_random_point(self) -> GameObject:
-        return GameObject((random.randint(0, scr_width - self._size_x), random.randint(0, scr_height - self._size_y)), (50, 50), Colors.red)
+        return GameObject((random.randint(0, scr_width - self._size_x), random.randint(0, scr_height - self._size_y)), (20, 20), Colors.red)
 
-    # TODO in MAIN branch ---
     def update(self):
-        self.target.draw()
+        # self.target.draw() # ! TEMPORARY
         return super().update()
 
 
