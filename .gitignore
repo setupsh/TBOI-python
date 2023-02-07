@@ -1,2 +1,7 @@
 
 *.pyc
+__pycache__/GameObj_module.cpython-310.pyc
+.luarc.json
+.vscode/settings.json
+__pycache__/GameObj_module.cpython-310.pyc
+*.pyc

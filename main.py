@@ -11,11 +11,12 @@ from screen_module import init as init_screen
 from GameObj_module import *
 from GUI_module import GuiLabel, Canvas, HorizontalAlignment, VerticalAlignment, obvodka, Button
 from sounds_module import init as mixerinit, Sound, Sounds, Music, Tracks
-from spritre_module import Sprites, BackGrounds
+from sprite_module import Sprites, BackGrounds
 
 pygame.init()
 init_screen()
 mixerinit()
+
 #Наблюдатель
 class GameObserver:
     secs: float = 0
@@ -50,12 +51,17 @@ class GameObserver:
     def rect_collide(rect: pygame.Rect, rect2: pygame.Rect) -> bool:
         if not rect or not rect2: return False 
         return rect.colliderect(rect2.left, rect2.top, rect2.width, rect2.height)
+    
     def math_collide(GO1, GO2):
         return (GO1._pos_x >= GO2._pos_x) and (GO1._pos_x < GO2._pos_x + GO2._size_x) and (GO1._pos_y >= GO2._pos_y) and (GO1._pos_y < GO2._pos_y + GO2._size_y)    
 
+    def check_enemy_collision(player: Player, enemy: Enemy):
+        if GameObserver.math_collide(player, enemy):
+            enemy.attack(player)
+        
 class GameUi:
     _labelFont = pygame.font.SysFont('Arial', 18)
-    #Очки и здоровье
+    #TODO: Очки и здоровье
     game_canvas: Canvas = Canvas()
 
     def __init__(self) -> None:
@@ -64,7 +70,9 @@ class GameUi:
         pass
     def draw_game(self):
         pass 
-enemy = Enemy([50,50], [50,50], sprite=Sprites.boss, health=1)
+
+enemy = PsychoMover([80,80], [50,50], Sprites.easy_enemy)
+projectiles = Projectiles()
 player = Player(start_pos=(scr_width * 0.5, scr_height * 0.9 ), start_size=(50,50), sprite=Sprites.player)
 test_enemy = PsychoMover(start_pos=(scr_width * 0.1, scr_height * 0.9 ), start_size=(50,50), sprite=Sprites.hard_enemy)
 gameui = GameUi()
@@ -74,19 +82,52 @@ def game_loop():
     GameObserver.secs += Time.delta_time
     GameObserver.timer = int(GameObserver.secs)
 
-    if (Inpunting.is_key_left_pressed):
+    if (Inpunting.is_key_a_pressed):
         player.move(Direction.Left)
+    else:
+        player.left_acceleration -= Time.delta_time * 3
+        if player.left_acceleration < 0:
+            player.left_acceleration = 0
 
-    if (Inpunting.is_key_right_pressed):
+    if (Inpunting.is_key_d_pressed):
         player.move(Direction.Right)
+    else:
+        player.right_acceleration -= Time.delta_time * 3
+        if player.right_acceleration < 0:
+            player.right_acceleration = 0
+
+    if (Inpunting.is_key_w_pressed):
+        player.move(Direction.Up)
+    else:
+        player.up_acceleration -= Time.delta_time * 3
+        if player.up_acceleration < 0:
+            player.up_acceleration = 0        
+
+    if (Inpunting.is_key_s_pressed):
+        player.move(Direction.Down)
+    else:
+        player.down_acceleration -= Time.delta_time * 3
+        if player.down_acceleration < 0:
+            player.down_acceleration = 0       
 
     if (Inpunting.is_key_up_pressed):
-        player.move(Direction.Up)
+        player.try_shoot(Direction.Up, projectiles)
 
     if (Inpunting.is_key_down_pressed):
-        player.move(Direction.Down)          
+        player.try_shoot(Direction.Down, projectiles)
 
+    if (Inpunting.is_key_left_pressed):
+        player.try_shoot(Direction.Left, projectiles)
+
+    if (Inpunting.is_key_right_pressed):
+        player.try_shoot(Direction.Right, projectiles)  
+
+    enemy.draw()
+    projectiles.update()                                               
+    projectiles.draw()
+    player.update()
     player.draw()
+    GameObserver.check_enemy_collision(player, enemy)
 
 def game_over_loop():
     screen.fill(Colors.black)
@@ -100,7 +141,7 @@ def main_menu_loop():
 def win_screen_loop():
     screen.fill(Colors.black)
     gameui.draw_win()
-  
+
 while True:
     get_events()
 
@@ -116,7 +157,7 @@ while True:
         else:
             pass
     else:
-        main_menu_loop() 
-
+        main_menu_loop()
+    
     pygame.display.update()  
     Time.update()
