@@ -71,10 +71,13 @@ class GameUi:
     def draw_game(self):
         pass 
 
-enemy = PsychoMover([80,80], [50,50], Sprites.easy_enemy)
 projectiles = Projectiles()
 player = Player(start_pos=(scr_width * 0.5, scr_height * 0.9 ), start_size=(50,50), sprite=Sprites.player)
-test_enemy = PsychoMover(start_pos=(scr_width * 0.1, scr_height * 0.9 ), start_size=(50,50), sprite=Sprites.hard_enemy)
+
+enemy = PsychoMover([80,80], [50,50], Sprites.easy_enemy)
+enemy2 = PsychoMover([600,80], [50,50], Sprites.hard_enemy)
+enemy.set_target(player)
+
 gameui = GameUi()
 
 def game_loop():
@@ -122,7 +125,10 @@ def game_loop():
     if (Inpunting.is_key_right_pressed):
         player.try_shoot(Direction.Right, projectiles)  
 
+    enemy.update()
     enemy.draw()
+    #enemy2.update()
+    #enemy2.draw()
     projectiles.update()                                               
     projectiles.draw()
     player.update()

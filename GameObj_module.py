@@ -30,6 +30,11 @@ class GameObject:
         self._pos_x = pos[0]
         self._pos_y = pos[1]
 
+    # TODO in MAIN
+    def add_position(self, pos: tuple[int, int]):
+        self._pos_x += pos[0]
+        self._pos_y += pos[1]
+
     def set_size(self,size: tuple[int, int]):
         self._size_x = size[0]
         self._size_y = size[1]
@@ -259,15 +264,39 @@ class Enemy(GameObjSprites):
     speed: float = 2.0
     damage: int = 1
 
+    # TODO in MAIN branch ---
+    target: GameObject = None
+
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image):
         super().__init__(start_pos, start_size, sprite)
 
-    def draw(self):
-        super().draw()
+    # TODO in MAIN branch ---
+    def update(self):
+        if self.target:
+            if self.get_distance_to(self.target) > 50:
+                self.move()
+
+    def set_target(self, new_target: GameObject):
+        self.target = new_target
+
+    def get_distance_to(self, target: GameObject):
+        magnitude = ((target._pos_x - self._pos_x) ** 2 + (target._pos_y - self._pos_y) ** 2) ** 0.5
+        # print(magnitude)
+        return magnitude
+
+    def get_direction_to(self, target: GameObject):
+        # ! Важно, что это не дает постоянной скорости (чем дальше цель, тем быстрее ее настигает враг)
+        direction = (target._pos_x - self._pos_x, target._pos_y - self._pos_y)
+        # print(direction)
+        return direction
 
     def move(self):
-        pass
+        direction = self.get_direction_to(self.target)
+        # TODO: метод add_position у GameObject
+        self._pos_x += direction[0] * Time.delta_time
+        self._pos_y += direction[1] * Time.delta_time
 
+    # TODO: кулдаун аттаки
     def attack(self, player: Player):
         player.get_damage(self.damage)
         print(1)
@@ -289,19 +318,27 @@ class Enemy(GameObjSprites):
 
     def dead(self):
         pass
+    
+    def draw(self):
+        super().draw()
 
 class PsychoMover(Enemy):
     health:int = 3
     speed: float = 3
 
+    # TODO: сделать фиксированный start_size для всех типов врагов
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image):
         super().__init__(start_pos, start_size, sprite)
-        self.destination = self.get_random_point()
+        self.set_target(self.get_random_point())
 
-    def get_random_point(self) -> tuple[int, int]:
-        return (random.randint(0, scr_width), random.randint(0, scr_height))
+    # TODO in MAIN branch ---
+    def get_random_point(self) -> GameObject:
+        return GameObject((random.randint(0, scr_width - self._size_x), random.randint(0, scr_height - self._size_y)), (50, 50), Colors.red)
 
-
+    # TODO in MAIN branch ---
+    def update(self):
+        self.target.draw()
+        return super().update()
 
 
 #class Enemies():
