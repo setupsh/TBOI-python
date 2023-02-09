@@ -121,6 +121,7 @@ def game_loop():
     if (Inpunting.is_key_right_pressed):
         player.try_shoot(Direction.Right, projectiles)  
 
+    enemy.update()
     enemy.draw()
     projectiles.update()                                               
     projectiles.draw()

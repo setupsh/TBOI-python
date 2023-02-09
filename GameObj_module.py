@@ -259,14 +259,42 @@ class Enemy(GameObjSprites):
     speed: float = 2.0
     damage: int = 1
 
+    target: GameObject = None
+
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image):
         super().__init__(start_pos, start_size, sprite)
+
+    def update(self):
+        if self.target:
+            if self.get_distance_to(self.target) > 50:
+                self.move()
+
+    def clamp_number(self, num, a, b):
+        return max(min(num, max(a,b)), min(a,b))            
+
+    def set_target(self, new_target: GameObject):
+        if new_target:
+            self.target = new_target
+
+    def get_distance_to(self, target:GameObject):
+        magnitude = ((target._pos_x - self._pos_x) ** 2 + (target._pos_y - self._pos_y) ** 2) ** 0.5
+        return(magnitude)
+    
+    def get_direction_to(self, target:GameObject):
+        direction_x = self.clamp_number(target._pos_x - self._pos_x, -1, 1)
+        direction_y = self.clamp_number(target._pos_y - self._pos_y, -1, 1)
+        direction = (direction_x, direction_y)
+        print(direction_x, direction_y)
+        return direction    
 
     def draw(self):
         super().draw()
 
     def move(self):
-        pass
+        direction = self.get_direction_to(self.target)
+        self._pos_x += direction[0] * self.speed * Time.delta_time
+        self._pos_y += direction[1] * self.speed * Time.delta_time
+
 
     def attack(self, player: Player):
         player.get_damage(self.damage)
@@ -291,16 +319,29 @@ class Enemy(GameObjSprites):
         pass
 
 class PsychoMover(Enemy):
-    health:int = 3
-    speed: float = 3
+    health: int = 3
+    speed: float = 100
+    road_to_the_dream: int = 800
 
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image):
         super().__init__(start_pos, start_size, sprite)
-        self.destination = self.get_random_point()
+        self.set_target(self.get_random_point())
 
-    def get_random_point(self) -> tuple[int, int]:
-        return (random.randint(0, scr_width), random.randint(0, scr_height))
-
+    def get_random_point(self) -> GameObject:
+        new_target =  GameObject((random.randint(0, scr_width - self._size_x), random.randint(0, scr_height - self._size_y)), (10, 10), Colors.red)
+        if self.get_distance_to(new_target) < self.road_to_the_dream:
+            print('Реквием')
+            new_target = self.get_random_point()
+        return new_target     
+    
+    def update(self):
+        if self.target:
+            #self.target.draw()
+            if self.get_distance_to(self.target) > 30:
+                self.move()
+                self.get_direction_to(self.target)
+            else:
+                self.set_target(self.get_random_point())  
 
 
 
