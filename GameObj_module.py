@@ -1,5 +1,6 @@
 import pygame
 import colorlib as Colors
+import math_module as Math
 from typing import List, Tuple
 from screen_module import *
 from enum import Enum
@@ -289,14 +290,14 @@ class Enemy(GameObjSprites):
     def get_direction_to(self, target: GameObject):
         # ! Важно, что это не дает постоянной скорости (чем дальше цель, тем быстрее ее настигает враг)
         direction = (target._pos_x - self._pos_x, target._pos_y - self._pos_y)
-        # print(direction)
+        print(direction)
         return direction
 
     def move(self):
         direction = self.get_direction_to(self.target)
         # TODO: метод add_position у GameObject
-        self._pos_x += direction[0] * Time.delta_time
-        self._pos_y += direction[1] * Time.delta_time
+        self._pos_x += Math.clamp(direction[0] * self.speed * Time.delta_time, -1, 1)
+        self._pos_y += Math.clamp(direction[1] * self.speed * Time.delta_time, -1, 1)
 
     # TODO: кулдаун аттаки
     def attack(self, player: Player):
@@ -327,7 +328,7 @@ class Enemy(GameObjSprites):
 class PsychoMover(Enemy):
     health: int = 3
     speed: float = 3
-    roadtrip_distance: int = 700
+    roadtrip_distance: int = 200
 
     # TODO: сделать фиксированный start_size для всех типов врагов
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image):
