@@ -64,7 +64,11 @@ class GameObjSprites(GameObject):
 
     def draw(self):
         self.set_collider()
-        screen.blit(self.sprite, self.collider)  
+        self.rect = pygame.draw.rect(surface=screen, color=Colors.blue, rect=(self._pos_x,
+         self._pos_y,
+         self._size_x,
+         self._size_y ))
+        screen.blit(self.sprite, self.collider) 
 
 
 class Particle(GameObjSprites):
@@ -268,25 +272,24 @@ class Enemy(GameObjSprites):
 
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image):
         super().__init__(start_pos, start_size, sprite)
-
-    # TODO in MAIN branch ---
+        
     def update(self):
         if self.target:
             if self.get_distance_to(self.target) > 50:
                 self.move()
 
     def set_target(self, new_target: GameObject):
-        self.target = new_target
+        if new_target:
+            self.target = new_target
 
     def get_distance_to(self, target: GameObject):
         magnitude = ((target._pos_x - self._pos_x) ** 2 + (target._pos_y - self._pos_y) ** 2) ** 0.5
-        print(magnitude)
         return magnitude
 
     def get_direction_to(self, target: GameObject):
         # ! Важно, что это не дает постоянной скорости (чем дальше цель, тем быстрее ее настигает враг)
         direction = (target._pos_x - self._pos_x, target._pos_y - self._pos_y)
-        print(direction)
+        # print(direction)
         return direction
 
     def move(self):
@@ -322,8 +325,9 @@ class Enemy(GameObjSprites):
         super().draw()
 
 class PsychoMover(Enemy):
-    health:int = 3
+    health: int = 3
     speed: float = 3
+    roadtrip_distance: int = 700
 
     # TODO: сделать фиксированный start_size для всех типов врагов
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image):
@@ -331,11 +335,19 @@ class PsychoMover(Enemy):
         self.set_target(self.get_random_point())
 
     def get_random_point(self) -> GameObject:
-        return GameObject((random.randint(0, scr_width - self._size_x), random.randint(0, scr_height - self._size_y)), (20, 20), Colors.red)
+        new_target = GameObject((random.randint(0, scr_width - self._size_x), random.randint(0, scr_height - self._size_y)), (20, 20), Colors.red)
+        if self.get_distance_to(new_target) < self.roadtrip_distance:
+            new_target = self.get_random_point()
+            print("Случилась рекурсия!")
+        return new_target
 
     def update(self):
-        # self.target.draw() # ! TEMPORARY
-        return super().update()
+        if self.target:
+            self.target.draw() # ! TEMPORARY
+            if self.get_distance_to(self.target) > 10:
+                self.move()
+            else:
+                self.set_target(self.get_random_point())
 
 
 #class Enemies():

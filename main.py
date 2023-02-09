@@ -53,7 +53,8 @@ class GameObserver:
         return rect.colliderect(rect2.left, rect2.top, rect2.width, rect2.height)
     
     def math_collide(GO1, GO2):
-        return (GO1._pos_x >= GO2._pos_x) and (GO1._pos_x < GO2._pos_x + GO2._size_x) and (GO1._pos_y >= GO2._pos_y) and (GO1._pos_y < GO2._pos_y + GO2._size_y)    
+        # TODO: исправить
+        return (GO1._pos_x >= GO2._pos_x) and (GO1._pos_x < GO2._pos_x + GO2._size_x) and (GO1._pos_y >= GO2._pos_y) and (GO1._pos_y < GO2._pos_y + GO2._size_y)
 
     def check_enemy_collision(player: Player, enemy: Enemy):
         if GameObserver.math_collide(player, enemy):
@@ -69,13 +70,13 @@ class GameUi:
     def update(self):
         pass
     def draw_game(self):
-        pass 
+        pass
 
 projectiles = Projectiles()
 player = Player(start_pos=(scr_width * 0.5, scr_height * 0.9 ), start_size=(50,50), sprite=Sprites.player)
 
 enemy = PsychoMover([80,80], [50,50], Sprites.easy_enemy)
-enemy.set_target(player)
+# enemy.set_target(player)
 
 gameui = GameUi()
 
@@ -126,8 +127,6 @@ def game_loop():
 
     enemy.update()
     enemy.draw()
-    #enemy2.update()
-    #enemy2.draw()
     projectiles.update()                                               
     projectiles.draw()
     player.update()
