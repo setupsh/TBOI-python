@@ -75,7 +75,8 @@ class GameUi:
 projectiles = Projectiles()
 player = Player(start_pos=(scr_width * 0.5, scr_height * 0.9 ), start_size=(50,50), sprite=Sprites.player)
 
-enemy = PsychoMover([80,80], [50,50], Sprites.easy_enemy)
+# enemy = PsychoMover([80,80], [50,50], Sprites.easy_enemy)
+enemy = Chaser([80,80], [50,50], Sprites.hard_enemy, player)
 # enemy.set_target(player)
 
 gameui = GameUi()
@@ -131,7 +132,7 @@ def game_loop():
     projectiles.draw()
     player.update()
     player.draw()
-    GameObserver.check_enemy_collision(player, enemy)
+    # GameObserver.check_enemy_collision(player, enemy)
 
 def game_over_loop():
     screen.fill(Colors.black)

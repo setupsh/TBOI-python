@@ -290,19 +290,19 @@ class Enemy(GameObjSprites):
     def get_direction_to(self, target: GameObject):
         # ! Важно, что это не дает постоянной скорости (чем дальше цель, тем быстрее ее настигает враг)
         direction = (target._pos_x - self._pos_x, target._pos_y - self._pos_y)
-        print(direction)
         return direction
 
     def move(self):
         direction = self.get_direction_to(self.target)
         # TODO: метод add_position у GameObject
-        self._pos_x += Math.clamp(direction[0] * self.speed * Time.delta_time, -1, 1)
-        self._pos_y += Math.clamp(direction[1] * self.speed * Time.delta_time, -1, 1)
+        self._pos_x += Math.clamp(direction[0] * self.speed * Time.delta_time, -100, 100)
+        self._pos_y += Math.clamp(direction[1] * self.speed * Time.delta_time, -100, 100)
 
     # TODO: кулдаун аттаки
-    def attack(self, player: Player):
-        player.get_damage(self.damage)
-        print(1)
+    def attack(self, target: GameObject):
+        if type(target) == Player:
+            target.get_damage(self.damage)
+            print("Нанесен урон")
 
     def get_damage(self, value: int):
         self.health -= value
@@ -350,6 +350,32 @@ class PsychoMover(Enemy):
             else:
                 self.set_target(self.get_random_point())
 
+class Chaser(Enemy):
+    health: int = 3
+    speed: float = 1
+
+    timer: float = 0.0
+    cooldown_time: float = 0.3
+    is_cooldown: bool = False
+
+    def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image, target: GameObject):
+        super().__init__(start_pos, start_size, sprite)
+        self.set_target(target)
+
+    def update(self):
+        if self.target:
+            if not self.is_cooldown and self.get_distance_to(self.target) > 50:
+                self.move()
+            else:
+                if self.is_cooldown:
+                    if self.timer > 0:
+                        self.timer -= Time.delta_time
+                    else:
+                        self.timer = self.cooldown_time
+                        self.is_cooldown = False
+                else:
+                    self.attack(self.target)
+                    self.is_cooldown = True
 
 #class Enemies():
 #    enemy_list: List[Enemy] = []
