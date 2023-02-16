@@ -124,13 +124,13 @@ class Projectile(GameObjSprites):
     def move(self):
         match self.direction:
             case Direction.Up:
-                self._pos_y -= self.speed * Time.delta_time 
+                self._pos_y -= self.speed * Time.delta_time
             case Direction.Down:
                 self._pos_y += self.speed * Time.delta_time
             case Direction.Left:
-                self._pos_x -= self.speed * Time.delta_time 
+                self._pos_x -= self.speed * Time.delta_time
             case Direction.Right:
-                self._pos_x += self.speed * Time.delta_time                
+                self._pos_x += self.speed * Time.delta_time   
     
     def reach_down(self) -> bool:
         return self._pos_y > scr_height
@@ -152,6 +152,17 @@ class Projectile(GameObjSprites):
         if self.lifetime <= 0:
             self.destroy_on_next_frame = True
 
+class DirectionalProjectile(Projectile):
+    def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image, speed: int, lifetime: float, direction: tuple[int, int], shoot_player: bool):
+        self.shoot_player = shoot_player
+        self.speed = speed
+        self.direction = direction
+        self.lifetime = lifetime
+        self.destroy_on_next_frame = False
+        super().__init__(start_pos, start_size, sprite)
+
+    def move(self):
+        pass
 
 class Projectiles:
     projectiles_list: List[Projectile] = []
@@ -253,7 +264,7 @@ class Player(GameObjSprites):
     def draw(self):
         super().draw()
 
-    def try_shoot(self, direction: Direction, projectiles:Projectiles):
+    def try_shoot(self, direction: Direction, projectiles: Projectiles):
         if self._can_shoot:
             projectiles.append_projectile(Projectile([self._pos_x + self._size_x * 0.5 - self.bullet_size * 0.5 , self._pos_y + self._size_y * 0.5 - self.bullet_size * 0.5], [self.bullet_size,self.bullet_size], sprite=Sprites.bullet, speed=self.bullet_speed, lifetime=self.bullet_lifetime, direction=direction, shoot_player=True))
             self._can_shoot = False
@@ -291,6 +302,9 @@ class Enemy(GameObjSprites):
         # ! Важно, что это не дает постоянной скорости (чем дальше цель, тем быстрее ее настигает враг)
         direction = (target._pos_x - self._pos_x, target._pos_y - self._pos_y)
         return direction
+
+    # def get_dot_product(self, target: GameObject):
+    #     return Math.get_angle_between((self._pos_x, self._pos_y),(target._pos_x, target._pos_y))
 
     def move(self):
         direction = self.get_direction_to(self.target)
@@ -376,6 +390,44 @@ class Chaser(Enemy):
                 else:
                     self.attack(self.target)
                     self.is_cooldown = True
+
+class Shooter(Enemy):
+    health: int = 2
+    speed: float = 1
+
+    timer: float = 0.0
+    cooldown_time: float = 0.3
+    is_cooldown: bool = False
+
+    projectiles: Projectiles = None
+
+    def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image, target: GameObject, projectiles: Projectiles):
+        super().__init__(start_pos, start_size, sprite)
+        self.projectiles = projectiles
+        self.set_target(target)
+    
+    def update(self):
+        if self.target:
+            if not self.is_cooldown and self.get_distance_to(self.target) > 50:
+                self.move()
+            else:
+                if self.is_cooldown:
+                    if self.timer > 0:
+                        self.timer -= Time.delta_time
+                    else:
+                        self.timer = self.cooldown_time
+                        self.is_cooldown = False
+                else:
+                    self.attack(self.target)
+                    self.is_cooldown = True
+    
+    def attack(self, target: GameObject):
+        self.try_shoot(self.get_direction_to(target), self.projectiles)
+
+    def try_shoot(self, direction: tuple[int, int], projectiles: Projectiles):
+            if not self.is_cooldown:
+                projectiles.append_projectile(DirectionalProjectile([self._pos_x + self._size_x * 0.5 - self.bullet_size * 0.5 , self._pos_y + self._size_y * 0.5 - self.bullet_size * 0.5], [self.bullet_size,self.bullet_size], sprite=Sprites.bullet, speed=self.bullet_speed, lifetime=self.bullet_lifetime, direction=direction, shoot_player=False))
+                self.is_cooldown = True
 
 #class Enemies():
 #    enemy_list: List[Enemy] = []

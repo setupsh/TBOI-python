@@ -112,7 +112,7 @@ def game_loop():
     else:
         player.down_acceleration -= Time.delta_time * 3
         if player.down_acceleration < 0:
-            player.down_acceleration = 0       
+            player.down_acceleration = 0
 
     if (Inpunting.is_key_up_pressed):
         player.try_shoot(Direction.Up, projectiles)
