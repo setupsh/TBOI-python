@@ -76,7 +76,8 @@ projectiles = Projectiles()
 player = Player(start_pos=(scr_width * 0.5, scr_height * 0.9 ), start_size=(50,50), sprite=Sprites.player)
 
 # enemy = PsychoMover([80,80], [50,50], Sprites.easy_enemy)
-enemy = Chaser([80,80], [50,50], Sprites.hard_enemy, player)
+#enemy = Chaser([80,80], [50,50], Sprites.hard_enemy, player)
+enemy = Shooter([80,80], [50,50], Sprites.hard_enemy, player, projectiles)
 # enemy.set_target(player)
 
 gameui = GameUi()

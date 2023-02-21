@@ -422,12 +422,12 @@ class Shooter(Enemy):
                     self.is_cooldown = True
     
     def attack(self, target: GameObject):
-        self.try_shoot(self.get_direction_to(target), self.projectiles)
+        self.try_shoot(self.get_direction_to(target))
 
-    def try_shoot(self, direction: tuple[int, int], projectiles: Projectiles):
-            if not self.is_cooldown:
-                projectiles.append_projectile(DirectionalProjectile([self._pos_x + self._size_x * 0.5 - self.bullet_size * 0.5 , self._pos_y + self._size_y * 0.5 - self.bullet_size * 0.5], [self.bullet_size,self.bullet_size], sprite=Sprites.bullet, speed=self.bullet_speed, lifetime=self.bullet_lifetime, direction=direction, shoot_player=False))
-                self.is_cooldown = True
+    def try_shoot(self, direction: tuple[int, int]):
+        if not self.is_cooldown:
+            self.projectiles.append_projectile(DirectionalProjectile([self._pos_x + self._size_x * 0.5 - self.bullet_size * 0.5 , self._pos_y + self._size_y * 0.5 - self.bullet_size * 0.5], [self.bullet_size,self.bullet_size], sprite=Sprites.bullet, speed=self.bullet_speed, lifetime=self.bullet_lifetime, direction=direction, shoot_player=False))
+            self.is_cooldown = True
 
 #class Enemies():
 #    enemy_list: List[Enemy] = []
