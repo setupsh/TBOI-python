@@ -6,7 +6,9 @@ from enum import Enum
 from time_module import Time
 from sprite_module import Sprites
 import random
-
+import math
+import numpy as np
+from scipy.special import comb
 
 class Direction(Enum):
     Up = 0
@@ -142,6 +144,14 @@ class Projectile(GameObjSprites):
         if self.lifetime <= 0:
             self.destroy_on_next_frame = True
 
+class CustomProjectile(Projectile):
+    def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image, speed: int, lifetime: float, direction: tuple[int,int], shoot_player: bool):
+        super().__init__(start_pos, start_size, sprite, speed, lifetime, direction, shoot_player)
+
+    def move(self):
+        self._pos_x += self.direction[0] * self.speed * Time.delta_time
+        self._pos_y += self.direction[1] * self.speed * Time.delta_time             
+
 
 class Projectiles:
     projectiles_list: List[Projectile] = []
@@ -169,7 +179,8 @@ class Projectiles:
 
 class Player(GameObjSprites):
     health: int = 3
-    max_health: int = 3 
+    max_health: int = 3
+    is_dead: bool = False 
     # Movement
     _speed: float = 3.0
 
@@ -228,7 +239,7 @@ class Player(GameObjSprites):
             self.dead()                
 
     def dead(self):
-        print('ВЫ ПОГИБЛИ')
+        self.is_dead = True
         
     def update(self):
         self._pos_x += ((self.right_acceleration) ** 0.5) * self._speed
@@ -258,6 +269,7 @@ class Enemy(GameObjSprites):
     health: int = 3
     speed: float = 2.0
     damage: int = 1
+    is_dead: bool = False
 
     target: GameObject = None
 
@@ -270,7 +282,16 @@ class Enemy(GameObjSprites):
                 self.move()
 
     def clamp_number(self, num, a, b):
-        return max(min(num, max(a,b)), min(a,b))            
+        return max(min(num, max(a,b)), min(a,b)) 
+    
+    def smooth_clamp(self, value, min_value, max_value, smooth_factor):
+        range_value = max_value - min_value
+        clamped_value = max(min(value, max_value), min_value)
+        normalized_value = (clamped_value - min_value) / range_value
+        smoothed_value = math.pow(normalized_value, smooth_factor)
+        return (smoothed_value * range_value) + min_value         
+
+    def smoothclamp(self, x, mi, mx): return mi + (mx-mi)*(lambda t: np.where(t < 0 , 0, np.where( t <= 1 , 3*t**2-2*t**3, 1 ) ) )( (x-mi)/(mx-mi) )
 
     def set_target(self, new_target: GameObject):
         if new_target:
@@ -281,10 +302,7 @@ class Enemy(GameObjSprites):
         return(magnitude)
     
     def get_direction_to(self, target:GameObject):
-        direction_x = self.clamp_number(target._pos_x - self._pos_x, -1, 1)
-        direction_y = self.clamp_number(target._pos_y - self._pos_y, -1, 1)
-        direction = (direction_x, direction_y)
-        print(direction_x, direction_y)
+        direction = (target._pos_x - self._pos_x, target._pos_y - self._pos_y)
         return direction    
 
     def draw(self):
@@ -292,12 +310,12 @@ class Enemy(GameObjSprites):
 
     def move(self):
         direction = self.get_direction_to(self.target)
-        self._pos_x += direction[0] * self.speed * Time.delta_time
-        self._pos_y += direction[1] * self.speed * Time.delta_time
+        self._pos_x += self.smooth_clamp(direction[0] * self.speed * Time.delta_time, -100, 100, 1)
+        self._pos_y += self.smooth_clamp(direction[1] * self.speed * Time.delta_time, -100, 100, 1)
 
-
-    def attack(self, player: Player):
-        player.get_damage(self.damage)
+    def attack(self, target: GameObject):
+        if type(target) == Player:
+            target.get_damage(1)
         print(1)
 
     def get_damage(self, value: int):
@@ -313,14 +331,11 @@ class Enemy(GameObjSprites):
 
     def check_death(self):
         if self.health <= 0:
-            self.dead()                
-
-    def dead(self):
-        pass
+            self.is_dead = True               
 
 class PsychoMover(Enemy):
     health: int = 3
-    speed: float = 100
+    speed: float = 2
     road_to_the_dream: int = 800
 
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image):
@@ -339,61 +354,95 @@ class PsychoMover(Enemy):
             #self.target.draw()
             if self.get_distance_to(self.target) > 30:
                 self.move()
-                self.get_direction_to(self.target)
             else:
                 self.set_target(self.get_random_point())  
 
+class Chaser(Enemy):
+    health: int = 3
+    speed: float = 2
+    timer: float = 1
+    in_cooldown: bool = False
 
+    def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image, target: GameObject):
+        super().__init__(start_pos, start_size, sprite)
+        self.set_target(target)     
+    
+    def update(self):   
+        if self.target:
+            #self.target.draw()
+            if self.get_distance_to(self.target) > 30 and not self.in_cooldown:
+                self.move()
+            else:
+                if not self.in_cooldown:
+                    self.attack(self.target)
+                    self.in_cooldown = True
+                else:
+                    self.timer -= Time.delta_time
+                    if self.timer <= 0:
+                        self.in_cooldown = False
+                        self.timer = 1
 
-#class Enemies():
-#    enemy_list: List[Enemy] = []
-#
-#    def __init__(self, start_pos: Tuple[int, int],start_size: Tuple[int,int], enemy_in_row: int, enemy_in_column: int,steps: int, distance : int, enemy_sprite: pygame.image) -> None:
-#        self._path_length = scr_width - (enemy_in_row * distance)
-#        self.start_x = self.x = start_pos[0]
-#        self.direction = Direction.Right
-#        self.x = start_pos[0]
-#        self.y = start_pos[1]
-#        self.steps = steps
-#        self.distance = distance
-#        for c in range(0, enemy_in_column):
-#            for r in range(0, enemy_in_row):
-#                new_pos = [start_pos[0] + r * distance, start_pos[1] + c * distance]
-#                new_enemy = Enemy(new_pos, start_size, random.choice(Sprites.list_enemies))
-#                self.enemy_list.append(new_enemy)
-#       
-#    def _reach_right_board(self) -> bool:
-#        return self.x >= self.start_x + self._path_length + self.distance // 2
-#        
-#    def _reach_left_board(self) -> bool:
-#        return self.x <= self.start_x
-#    def destroy(self, obj):
-#        self.enemy_list.remove(obj)
-#    def move(self):
-#        match self.direction:
-#            case Direction.Left: self.move_left()
-#            case Direction.Right: self.move_right()
-#
-#        for enemy in self.enemy_list:
-#            enemy.move(self.direction, self.steps)
-#
-#    def move_right(self):
-#        self.x += self.steps
-#        if self._reach_right_board():
-#            self.direction = Direction.Left
-#            for enemy in self.enemy_list:
-#                enemy.move(Direction.Down, 20)
-#
-#    def move_left(self):
-#        self.x -= self.steps
-#        if self._reach_left_board():
-#            self.direction = Direction.Right
-#            for enemy in self.enemy_list:
-#                enemy.move(Direction.Down, 20)
-#
-#    def draw(self):
-#        for i in self.enemy_list:
-#            i.draw()
+class Shooter(Enemy):
+    health: int = 2
+    speed: float = 0.1
+    timer: float = 0.1
+    comeback_time: float = 0.1
+    bullet_lifetime: float = 3
+    bullet_speed: int = 1
+    bullet_size: int = 25
+    shoot_trigger_distance: int = 45
+    in_cooldown: bool = False
+
+    def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image, target: GameObject, projectiles: Projectiles):
+        super().__init__(start_pos, start_size, sprite)
+        self.set_target(target)
+        self.projectiles = projectiles 
+
+    def attack(self, target: GameObject):
+        self.get_direction_to(target)
+
+    def try_shoot(self):
+        self.projectiles.append_projectile(CustomProjectile([self._pos_x + self._size_x * 0.5 - self.bullet_size * 0.5 , self._pos_y + self._size_y * 0.5 - self.bullet_size * 0.5], [self.bullet_size,self.bullet_size], sprite=Sprites.bullet, speed=self.bullet_speed, lifetime=self.bullet_lifetime, direction=self.get_direction_to(self.target), shoot_player=False))
+
+    def update(self):   
+        if self.target:
+            #self.target.draw()
+            self.move()
+            if self.get_distance_to(self.target) > self.shoot_trigger_distance and not self.in_cooldown:
+               self.try_shoot()
+               self.in_cooldown = True
+            #    self.can_shoot = False
+            #if self.can_shoot:
+            #    self.bullet_timer -= Time.delta_time
+            #    if self.can_shoot <= 0:
+            #        self.can_shoot = True
+                 
+            else:
+                self.timer -= Time.delta_time
+                if self.timer <= 0:
+                    self.in_cooldown = False
+                    self.timer = self.comeback_time
+
+class Enemies():
+    enemy_list: List[Enemy] = []
+
+    def __init__(self) -> None:
+        pass
+    def add(self, enemy: Enemy):
+        self.enemy_list.append(enemy)  
+
+    def destroy(self, enemy: Enemy):
+        self.enemy_list.remove(enemy)
+
+    def update(self):
+        for i in self.enemy_list:
+            i.update()
+            if i.is_dead:
+                self.destroy(i)
+
+    def draw(self):
+        for i in self.enemy_list:
+            i.draw()
 
 
 
