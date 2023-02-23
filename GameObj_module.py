@@ -260,10 +260,6 @@ class Player(GameObjSprites):
             self._cooldown_timer = self.shoot_cooldown
 
 
-# TODO:
-    # * Random-mover - просто мечется в рандомные точки на карте
-    # * Chaser - преследует игрока по карте
-    # * Shooter - стреляет по направлению в игрока
 class Enemy(GameObjSprites):
     health: int = 3
     speed: float = 2.0
@@ -315,7 +311,6 @@ class Enemy(GameObjSprites):
     def attack(self, target: GameObject):
         if type(target) == Player:
             target.get_damage(1)
-        print(1)
 
     def get_damage(self, value: int):
         self.health -= value
@@ -344,13 +339,11 @@ class PsychoMover(Enemy):
     def get_random_point(self) -> GameObject:
         new_target =  GameObject((random.randint(0, scr_width - self._size_x), random.randint(0, scr_height - self._size_y)), (10, 10), Colors.red)
         if self.get_distance_to(new_target) < self.road_to_the_dream:
-            print('Реквием')
             new_target = self.get_random_point()
         return new_target     
     
     def update(self):
         if self.target:
-            #self.target.draw()
             if self.get_distance_to(self.target) > 30:
                 self.move()
             else:
@@ -368,7 +361,6 @@ class Chaser(Enemy):
     
     def update(self):   
         if self.target:
-            #self.target.draw()
             if self.get_distance_to(self.target) > 30 and not self.in_cooldown:
                 self.move()
             else:
@@ -397,25 +389,20 @@ class Shooter(Enemy):
         self.set_target(target)
         self.projectiles = projectiles 
 
+    # ! Я бы использовал его заместо try_shoot
     def attack(self, target: GameObject):
-        self.get_direction_to(target)
+        pass
 
     def try_shoot(self):
         self.projectiles.append_projectile(CustomProjectile([self._pos_x + self._size_x * 0.5 - self.bullet_size * 0.5 , self._pos_y + self._size_y * 0.5 - self.bullet_size * 0.5], [self.bullet_size,self.bullet_size], sprite=Sprites.bullet, speed=self.bullet_speed, lifetime=self.bullet_lifetime, direction=self.get_direction_to(self.target), shoot_player=False))
 
+    # ! Не нравится алгоритм работы, непонятно зачем используется shoot_trigger_distance.
     def update(self):   
         if self.target:
-            #self.target.draw()
             self.move()
             if self.get_distance_to(self.target) > self.shoot_trigger_distance and not self.in_cooldown:
                self.try_shoot()
-               self.in_cooldown = True
-            #    self.can_shoot = False
-            #if self.can_shoot:
-            #    self.bullet_timer -= Time.delta_time
-            #    if self.can_shoot <= 0:
-            #        self.can_shoot = True
-                 
+               self.in_cooldown = True     
             else:
                 self.timer -= Time.delta_time
                 if self.timer <= 0:
