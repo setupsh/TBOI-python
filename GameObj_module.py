@@ -271,14 +271,12 @@ class Player(GameObjSprites):
             self._cooldown_timer = self.shoot_cooldown
 
 
-# TODO:
-    # * Random-mover - просто мечется в рандомные точки на карте
-    # * Chaser - преследует игрока по карте
-    # * Shooter - стреляет по направлению в игрока
 class Enemy(GameObjSprites):
     health: int = 3
     speed: float = 2.0
     damage: int = 1
+
+    is_dead: bool = False
 
     target: GameObject = None
 
@@ -303,24 +301,16 @@ class Enemy(GameObjSprites):
         direction = (target._pos_x - self._pos_x, target._pos_y - self._pos_y)
         return direction
 
-    # def get_dot_product(self, target: GameObject):
-    #     return Math.get_angle_between((self._pos_x, self._pos_y),(target._pos_x, target._pos_y))
-
     def move(self):
         direction = self.get_direction_to(self.target)
         # TODO: метод add_position у GameObject
         self._pos_x += Math.clamp(direction[0] * self.speed * Time.delta_time, -100, 100)
         self._pos_y += Math.clamp(direction[1] * self.speed * Time.delta_time, -100, 100)
 
-    # TODO: кулдаун аттаки
     def attack(self, target: GameObject):
         if type(target) == Player:
             target.get_damage(self.damage)
-            print("Нанесен урон")
-
-    def get_damage(self, value: int):
-        self.health -= value
-        self.check_death()
+            print("Нанесен урон", self.damage)
 
     def set_speed(self, value: int):
         self.speed = value
@@ -329,15 +319,16 @@ class Enemy(GameObjSprites):
         self.health = value
         self.check_death()
 
+    def get_damage(self, value: int):
+        self.health -= value
+        self.check_death()
+
     def check_death(self):
         if self.health <= 0:
             self.dead()                
 
     def dead(self):
-        pass
-    
-    def draw(self):
-        super().draw()
+        self.is_dead = True
 
 class PsychoMover(Enemy):
     health: int = 3
@@ -429,65 +420,24 @@ class Shooter(Enemy):
             self.projectiles.append_projectile(DirectionalProjectile([self._pos_x + self._size_x * 0.5 - self.bullet_size * 0.5 , self._pos_y + self._size_y * 0.5 - self.bullet_size * 0.5], [self.bullet_size,self.bullet_size], sprite=Sprites.bullet, speed=self.bullet_speed, lifetime=self.bullet_lifetime, direction=direction, shoot_player=False))
             self.is_cooldown = True
 
-#class Enemies():
-#    enemy_list: List[Enemy] = []
-#
-#    def __init__(self, start_pos: Tuple[int, int],start_size: Tuple[int,int], enemy_in_row: int, enemy_in_column: int,steps: int, distance : int, enemy_sprite: pygame.image) -> None:
-#        self._path_length = scr_width - (enemy_in_row * distance)
-#        self.start_x = self.x = start_pos[0]
-#        self.direction = Direction.Right
-#        self.x = start_pos[0]
-#        self.y = start_pos[1]
-#        self.steps = steps
-#        self.distance = distance
-#        for c in range(0, enemy_in_column):
-#            for r in range(0, enemy_in_row):
-#                new_pos = [start_pos[0] + r * distance, start_pos[1] + c * distance]
-#                new_enemy = Enemy(new_pos, start_size, random.choice(Sprites.list_enemies))
-#                self.enemy_list.append(new_enemy)
-#       
-#    def _reach_right_board(self) -> bool:
-#        return self.x >= self.start_x + self._path_length + self.distance // 2
-#        
-#    def _reach_left_board(self) -> bool:
-#        return self.x <= self.start_x
-#    def destroy(self, obj):
-#        self.enemy_list.remove(obj)
-#    def move(self):
-#        match self.direction:
-#            case Direction.Left: self.move_left()
-#            case Direction.Right: self.move_right()
-#
-#        for enemy in self.enemy_list:
-#            enemy.move(self.direction, self.steps)
-#
-#    def move_right(self):
-#        self.x += self.steps
-#        if self._reach_right_board():
-#            self.direction = Direction.Left
-#            for enemy in self.enemy_list:
-#                enemy.move(Direction.Down, 20)
-#
-#    def move_left(self):
-#        self.x -= self.steps
-#        if self._reach_left_board():
-#            self.direction = Direction.Right
-#            for enemy in self.enemy_list:
-#                enemy.move(Direction.Down, 20)
-#
-#    def draw(self):
-#        for i in self.enemy_list:
-#            i.draw()
+class Enemies():
+    enemy_list: List[Enemy] = []
 
+    def __init__(self) -> None:
+        pass
+    
+    def add(self, enemy: Enemy):
+        self.enemy_list.append(enemy)  
 
+    def destroy(self, enemy: Enemy):
+        self.enemy_list.remove(enemy)
 
+    def update(self):
+        for i in self.enemy_list:
+            i.update()
+            if i.is_dead:
+                self.destroy(i)
 
-
-                 
-                   
-
-
-
-
-
-
+    def draw(self):
+        for i in self.enemy_list:
+            i.draw()

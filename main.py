@@ -71,13 +71,13 @@ class GameUi:
     def draw_game(self):
         pass
 
+enemies = Enemies()
 projectiles = Projectiles()
-player = Player(start_pos=(scr_width * 0.5, scr_height * 0.9), start_size=(50,50), sprite=Sprites.player)
 
-# enemy = PsychoMover([80,80], [50,50], Sprites.easy_enemy)
-enemy = Chaser([scr_width * 0.5, scr_height * 0.5], [50,50], Sprites.hard_enemy, player)
-#enemy = Shooter([80,80], [50,50], Sprites.hard_enemy, player, projectiles)
-# enemy.set_target(player)ф
+player = Player(start_pos=(scr_width * 0.5, scr_height * 0.9), start_size=(50,50), sprite=Sprites.player)
+enemies.add(PsychoMover((scr_width * 0.5, scr_height * 0.5), (50, 50), Sprites.easy_enemy))
+enemies.add(Chaser((scr_width * 0.5, scr_height * 0.5), (50, 50), Sprites.normal_enemy, player))
+#enemies.add(Shooter((scr_width * 0.5, scr_height * 0.5), (50, 50), Sprites.hard_enemy, player, projectiles))
 
 gameui = GameUi()
 
@@ -126,13 +126,12 @@ def game_loop():
     if (Inpunting.is_key_right_pressed):
         player.try_shoot(Direction.Right, projectiles)  
 
-    #enemy.update()
-    enemy.draw()
     projectiles.update()                                               
     projectiles.draw()
     player.update()
     player.draw()
-    GameObserver.check_enemy_collision(player, enemy)
+    enemies.update()
+    enemies.draw()
 
 def game_over_loop():
     screen.fill(Colors.black)
