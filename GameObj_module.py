@@ -396,14 +396,12 @@ class Shooter(Enemy):
         self.set_target(target)
         self.projectiles = projectiles 
 
-    # ! Я бы использовал его заместо try_shoot
     def attack(self, target: GameObject):
         pass
 
     def try_shoot(self):
         self.projectiles.append_projectile(CustomProjectile([self._pos_x + self._size_x * 0.5 - self.bullet_size * 0.5 , self._pos_y + self._size_y * 0.5 - self.bullet_size * 0.5], [self.bullet_size,self.bullet_size], sprite=Sprites.bullet, speed=self.bullet_speed, lifetime=self.bullet_lifetime, direction=self.get_direction_to(self.target), shoot_player=False))
 
-    # ! Не нравится алгоритм работы, непонятно зачем используется shoot_trigger_distance.
     def update(self):   
         if self.target:
             if self.get_distance_to(self.target) > self.shoot_trigger_distance:
@@ -439,16 +437,3 @@ class Enemies():
     def draw(self):
         for i in self.enemy_list:
             i.draw()
-
-
-
-
-
-                 
-                   
-
-
-
-
-
-
