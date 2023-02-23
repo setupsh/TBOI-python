@@ -386,9 +386,15 @@ class Shooter(Enemy):
     health: int = 2
     speed: float = 1
 
+    shoot_trigger_distance: int = 45
+    bullet_lifetime: float = 3
+    bullet_speed: int = 1
+    bullet_size: int = 25
+    
     timer: float = 0.0
     cooldown_time: float = 0.3
     is_cooldown: bool = False
+
 
     projectiles: Projectiles = None
 
