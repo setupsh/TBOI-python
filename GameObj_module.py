@@ -385,7 +385,7 @@ class Shooter(Enemy):
     health: int = 2
     speed: float = 0.1
     timer: float = 0.1
-    comeback_time: float = 0.1
+    comeback_time: float = 1.5
     bullet_lifetime: float = 3
     bullet_speed: int = 1
     bullet_size: int = 25
