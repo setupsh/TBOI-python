@@ -52,13 +52,12 @@ class GameObserver:
         if not rect or not rect2: return False 
         return rect.colliderect(rect2.left, rect2.top, rect2.width, rect2.height)
     
-    def math_collide(GO1, GO2):
-        # TODO: исправить
-        return (GO1._pos_x >= GO2._pos_x) and (GO1._pos_x < GO2._pos_x + GO2._size_x) and (GO1._pos_y >= GO2._pos_y) and (GO1._pos_y < GO2._pos_y + GO2._size_y)
+    def math_collide(GO1: GameObject, GO2: GameObject):
+        return (GO1._pos_x + GO1._size_x >= GO2._pos_x) and (GO1._pos_x < GO2._pos_x + GO2._size_x) and (GO1._pos_y + GO1._size_y >= GO2._pos_y) and (GO1._pos_y < GO2._pos_y + GO2._size_y)
 
     def check_enemy_collision(player: Player, enemy: Enemy):
         if GameObserver.math_collide(player, enemy):
-            enemy.attack(player)
+            print("GOT COLLISION")
         
 class GameUi:
     _labelFont = pygame.font.SysFont('Arial', 18)
@@ -73,12 +72,12 @@ class GameUi:
         pass
 
 projectiles = Projectiles()
-player = Player(start_pos=(scr_width * 0.5, scr_height * 0.9 ), start_size=(50,50), sprite=Sprites.player)
+player = Player(start_pos=(scr_width * 0.5, scr_height * 0.9), start_size=(50,50), sprite=Sprites.player)
 
 # enemy = PsychoMover([80,80], [50,50], Sprites.easy_enemy)
-#enemy = Chaser([80,80], [50,50], Sprites.hard_enemy, player)
-enemy = Shooter([80,80], [50,50], Sprites.hard_enemy, player, projectiles)
-# enemy.set_target(player)
+enemy = Chaser([scr_width * 0.5, scr_height * 0.5], [50,50], Sprites.hard_enemy, player)
+#enemy = Shooter([80,80], [50,50], Sprites.hard_enemy, player, projectiles)
+# enemy.set_target(player)ф
 
 gameui = GameUi()
 
@@ -127,13 +126,13 @@ def game_loop():
     if (Inpunting.is_key_right_pressed):
         player.try_shoot(Direction.Right, projectiles)  
 
-    enemy.update()
+    #enemy.update()
     enemy.draw()
     projectiles.update()                                               
     projectiles.draw()
     player.update()
     player.draw()
-    # GameObserver.check_enemy_collision(player, enemy)
+    GameObserver.check_enemy_collision(player, enemy)
 
 def game_over_loop():
     screen.fill(Colors.black)
@@ -156,7 +155,6 @@ while True:
             if not GameObserver.player_is_win:
                 if not GameObserver.game_is_over:
                     game_loop()
-                
                 else: game_over_loop()
             else:
                 win_screen_loop()    
