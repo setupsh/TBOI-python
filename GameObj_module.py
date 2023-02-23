@@ -234,8 +234,10 @@ class Player(GameObjSprites):
             self.down_acceleration = 1
 
     def get_damage(self, value: int):
+        # если "щит" не активен:
         self.health -= value
-        self.check_death()  
+        self.check_death()
+        # TODO Активация "щита"
 
     def check_death(self):
         if self.health <= 0:
@@ -253,6 +255,7 @@ class Player(GameObjSprites):
             self._cooldown_timer -= Time.delta_time
             if self._cooldown_timer <= 0:
                 self._can_shoot = True
+        # TODO куллдаун неузвимовсти (аналогично верхнему условия)
 
     def draw(self):
         super().draw()
@@ -406,7 +409,7 @@ class Shooter(Enemy):
             self.move()
             if self.get_distance_to(self.target) > self.shoot_trigger_distance and not self.in_cooldown:
                self.try_shoot()
-               self.in_cooldown = True     
+               self.in_cooldown = True
             else:
                 self.timer -= Time.delta_time
                 if self.timer <= 0:

@@ -101,9 +101,9 @@ player = Player(start_pos=(scr_width * 0.5, scr_height * 0.9 ), start_size=(50,5
 projectiles = Projectiles()
 particles = Particles()
 enemies = Enemies()
-#enemies.add(PsychoMover([40,40], [50,50], Sprites.normal_enemy))
+enemies.add(PsychoMover([40,40], [50,50], Sprites.normal_enemy))
 #enemies.add(Chaser([40,40], [50,50], Sprites.normal_enemy, player))
-enemies.add(Shooter([40,40], [50,50], Sprites.normal_enemy, player, projectiles))
+#enemies.add(Shooter([40,40], [50,50], Sprites.normal_enemy, player, projectiles))
 #enemies.add(Shooter([400, 400], [100,100], Sprites.normal_enemy, player, projectiles))
 gameui = GameUi()
 
