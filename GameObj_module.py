@@ -8,7 +8,6 @@ from sprite_module import Sprites
 import random
 import math
 import numpy as np
-from scipy.special import comb
 
 class Direction(Enum):
     Up = 0
