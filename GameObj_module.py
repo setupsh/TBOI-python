@@ -239,7 +239,7 @@ class Player(GameObjSprites):
 
     def check_death(self):
         if self.health <= 0:
-            self.dead()                
+            self.dead()
 
     def dead(self):
         self.is_dead = True
@@ -333,8 +333,8 @@ class Enemy(GameObjSprites):
 
 class PsychoMover(Enemy):
     health: int = 3
-    speed: float = 2
-    road_to_the_dream: int = 800
+    speed: float = 1
+    road_to_the_dream: int = 300
 
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image):
         super().__init__(start_pos, start_size, sprite)
@@ -355,7 +355,7 @@ class PsychoMover(Enemy):
 
 class Chaser(Enemy):
     health: int = 3
-    speed: float = 2
+    speed: float = 1
     timer: float = 1
     in_cooldown: bool = False
 
@@ -380,12 +380,12 @@ class Chaser(Enemy):
 class Shooter(Enemy):
     health: int = 2
     speed: float = 0.1
-    timer: float = 0.1
     comeback_time: float = 1.5
+    timer = comeback_time
     bullet_lifetime: float = 3
     bullet_speed: int = 1
     bullet_size: int = 25
-    shoot_trigger_distance: int = 45
+    shoot_trigger_distance: int = 400
     in_cooldown: bool = False
 
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image, target: GameObject, projectiles: Projectiles):
@@ -403,10 +403,13 @@ class Shooter(Enemy):
     # ! Не нравится алгоритм работы, непонятно зачем используется shoot_trigger_distance.
     def update(self):   
         if self.target:
-            self.move()
-            if self.get_distance_to(self.target) > self.shoot_trigger_distance and not self.in_cooldown:
+            if self.get_distance_to(self.target) > self.shoot_trigger_distance:
+                self.move()
+
+            elif not self.in_cooldown:
                self.try_shoot()
-               self.in_cooldown = True     
+               self.in_cooldown = True 
+
             else:
                 self.timer -= Time.delta_time
                 if self.timer <= 0:
