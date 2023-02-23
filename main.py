@@ -53,7 +53,7 @@ class GameObserver:
         return rect.colliderect(rect2.left, rect2.top, rect2.width, rect2.height)
     
     def math_collide(GO1, GO2):
-        return (GO1._pos_x >= GO2._pos_x) and (GO1._pos_x < GO2._pos_x + GO2._size_x) and (GO1._pos_y >= GO2._pos_y) and (GO1._pos_y < GO2._pos_y + GO2._size_y)    
+        return (GO1._pos_x + GO1._size_x >= GO2._pos_x) and (GO1._pos_x < GO2._pos_x + GO2._size_x) and (GO1._pos_y + GO1._size_y >= GO2._pos_y) and (GO1._pos_y < GO2._pos_y + GO2._size_y)    
 
     def check_enemy_collision(player: Player, enemy: Enemy):
         if GameObserver.math_collide(player, enemy):
