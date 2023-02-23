@@ -15,5 +15,6 @@ class Sprites:
     block = load_sprite('\\block.png')  
     floor = load_sprite('\\floor.png')
     bullet = load_sprite('\\bullet.png')
+    death_skull = load_sprite('\\dead.png')
 class BackGrounds:
     pass

@@ -70,7 +70,12 @@ class GameObserver:
                 if GameObserver.math_collide(player, projectile):
                     projectiles.remove_projectile(projectile)
                     player.get_damage(1)        
-        
+
+    def enemy_is_killed(enemies: Enemies, particles: Particles):
+        for enemy in enemies.enemy_list:
+            if enemy.is_dead:
+                particles.append_particle(Skull ([enemy._pos_x, enemy._pos_y], [50,50]))
+
 class GameUi:
     _labelFont = pygame.font.SysFont('Arial', 18)
     #TODO: Очки и здоровье
@@ -78,11 +83,13 @@ class GameUi:
     gameover_canvas: Canvas = Canvas()
 
     _gameover_title: GuiLabel = GuiLabel ([scr_width/2,scr_height/2], 'Ты проиграл', Colors.white)
+    _game_life_label: GuiLabel = GuiLabel([0,0], f'score ', Colors.white, horizontal = HorizontalAlignment.Left, vertical = VerticalAlignment.Top)
 
     def __init__(self) -> None:
         self.gameover_canvas.extend_el([self._gameover_title])
+        self.game_canvas.extend_el([self._game_life_label])
     def update(self):
-        pass
+        self._game_life_label.set_label(f'{player.health}')
 
     def draw_game(self):
         self.game_canvas.draw()
@@ -92,6 +99,7 @@ class GameUi:
 
 player = Player(start_pos=(scr_width * 0.5, scr_height * 0.9 ), start_size=(50,50), sprite=Sprites.player)
 projectiles = Projectiles()
+particles = Particles()
 enemies = Enemies()
 #enemies.add(PsychoMover([40,40], [50,50], Sprites.normal_enemy))
 #enemies.add(Chaser([40,40], [50,50], Sprites.normal_enemy, player))
@@ -141,24 +149,28 @@ def game_loop():
     if (Inpunting.is_key_left_pressed):
         player.try_shoot(Direction.Left, projectiles)
 
-    if (Inpunting.is_key_right_pressed):
+    if (Inpunting.is_key_right_pressed):      
         player.try_shoot(Direction.Right, projectiles)  
 
+    particles.update()
+    particles.draw()
     enemies.update()
     enemies.draw()
     projectiles.update()                                               
     projectiles.draw()
     player.update()
     player.draw()
+    gameui.update()
+    gameui.draw_game()
     GameObserver.check_projectiles(player, enemies, projectiles)
+    GameObserver.enemy_is_killed(enemies, particles)
     if player.is_dead:
         GameObserver.game_is_over = True
    #sssssss GameObserver.check_enemy_collision(player, enemy)
 
 def game_over_loop():
     screen.fill(Colors.black)
-    gameui.draw_gameover()
-    print(1)    
+    gameui.draw_gameover()  
 
 def main_menu_loop():
     screen.fill(Colors.black)

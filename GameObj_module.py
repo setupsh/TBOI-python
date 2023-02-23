@@ -77,9 +77,13 @@ class Particle(GameObjSprites):
     def scale(self):
         pygame.transform.scale(self.sprite, (1,1))    
 
-    def draw(self):
-       screen.blit(self.sprite) 
 
+class Skull(Particle):
+    def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int]):
+        super().__init__(start_pos, start_size, Sprites.death_skull, 9999)
+    def update(self):
+        self.set_sprite(Sprites.death_skull)
+        return super().update()
 
 class Particles:
     particle_list: List[Particle] = []
