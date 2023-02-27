@@ -181,9 +181,11 @@ class Projectiles:
 
 
 class Player(GameObjSprites):
-    health: int = 3
+    health: int = 10
     max_health: int = 3
     is_dead: bool = False 
+    in_invicible: bool = False
+    invivible_timer: float = 1
     # Movement
     _speed: float = 3.0
 
@@ -234,10 +236,10 @@ class Player(GameObjSprites):
             self.down_acceleration = 1
 
     def get_damage(self, value: int):
-        # если "щит" не активен:
-        self.health -= value
+        if not self.in_invicible:
+            self.health -= value
         self.check_death()
-        # TODO Активация "щита"
+        self.in_invicible = True
 
     def check_death(self):
         if self.health <= 0:
@@ -255,6 +257,12 @@ class Player(GameObjSprites):
             self._cooldown_timer -= Time.delta_time
             if self._cooldown_timer <= 0:
                 self._can_shoot = True
+        if self.in_invicible:
+            self.invivible_timer -= Time.delta_time
+            if self.invivible_timer <= 0:
+                self.in_invicible = False
+                self.invivible_timer = 1
+
         # TODO куллдаун неузвимовсти (аналогично верхнему условия)
 
     def draw(self):
