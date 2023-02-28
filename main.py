@@ -12,10 +12,40 @@ from GameObj_module import *
 from GUI_module import GuiLabel, Canvas, HorizontalAlignment, VerticalAlignment, obvodka, Button
 from sounds_module import init as mixerinit, Sound, Sounds, Music, Tracks
 from sprite_module import Sprites, BackGrounds
+import level_module
 
 pygame.init()
 init_screen()
 mixerinit()
+
+class GameMap:
+    CHAR_EMPTY = '_'
+    CHAR_WALL = 'x'
+    CHAR_DOOR = 'D'
+    CHAR_PSYCHO = 'P'
+    CHAR_CHASER = 'C'
+    CHAR_SHOOTER = 'S'
+    MAP = (
+        level_module.load_level("testlevel")
+    )
+
+    blocks: List[Block] = list()
+
+    def __init__(self) -> None:
+        self.create()
+    
+    def create(self):
+        for i, e in enumerate(self.MAP):
+            for j, c in enumerate(e):
+                x = j * Block._size_x
+                y = i * Block._size_y
+                if c == self.CHAR_WALL:
+                    self.blocks.append(Wall((x, y)))
+
+    def draw(self):
+        for i in self.blocks:
+            i.draw()
+
 
 #Наблюдатель
 class GameObserver:
@@ -70,6 +100,9 @@ class GameUi:
         pass
     def draw_game(self):
         pass
+
+gamemap = GameMap()
+gamemap.create()
 
 enemies = Enemies()
 projectiles = Projectiles()
@@ -132,6 +165,8 @@ def game_loop():
     player.draw()
     enemies.update()
     enemies.draw()
+
+    gamemap.draw()
 
 def game_over_loop():
     screen.fill(Colors.black)

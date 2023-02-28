@@ -65,10 +65,6 @@ class GameObjSprites(GameObject):
 
     def draw(self):
         self.set_collider()
-        self.rect = pygame.draw.rect(surface=screen, color=Colors.blue, rect=(self._pos_x,
-         self._pos_y,
-         self._size_x,
-         self._size_y ))
         screen.blit(self.sprite, self.collider) 
 
 
@@ -447,3 +443,14 @@ class Enemies():
     def draw(self):
         for i in self.enemy_list:
             i.draw()
+
+
+class Block(GameObjSprites):
+    can_collide: bool = True
+    def __init__(self, start_pos: tuple[int, int], sprite: pygame.image):
+        super().__init__(start_pos, (48, 48), sprite)
+
+class Wall(Block):
+    default_sprite: pygame.image = Sprites.block
+    def __init__(self, start_pos: tuple[int, int]):
+        super().__init__(start_pos, self.default_sprite)

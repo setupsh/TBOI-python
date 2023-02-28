@@ -1,6 +1,6 @@
 import pygame
 scr_width = 960
-scr_height = 540
+scr_height = 576
 screen = pygame.display.set_mode((scr_width, scr_height))
 pygame.display.set_caption('Pygame!')
 
