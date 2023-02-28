@@ -186,6 +186,7 @@ class Player(GameObjSprites):
     is_dead: bool = False 
     in_invicible: bool = False
     invivible_timer: float = 1
+    invicible_timer_comeback = 1
     # Movement
     _speed: float = 3.0
 
@@ -261,7 +262,7 @@ class Player(GameObjSprites):
             self.invivible_timer -= Time.delta_time
             if self.invivible_timer <= 0:
                 self.in_invicible = False
-                self.invivible_timer = 1
+                self.invivible_timer = self.invicible_timer_comeback
 
         # TODO куллдаун неузвимовсти (аналогично верхнему условия)
 
