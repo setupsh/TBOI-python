@@ -25,27 +25,35 @@ class GameMap:
     CHAR_PSYCHO = 'P'
     CHAR_CHASER = 'C'
     CHAR_SHOOTER = 'S'
-    MAP = (
-        level_module.load_level("testlevel")
-    )
+    MAP = (level_module.load_level("testlevel"))
 
     blocks: List[Block] = list()
+    floor: List[Block] = list()
 
     def __init__(self) -> None:
         self.create()
     
     def create(self):
+        enemies.clear()
         for i, e in enumerate(self.MAP):
             for j, c in enumerate(e):
                 x = j * Block._size_x
                 y = i * Block._size_y
-                print(x, y)
                 if c == self.CHAR_WALL:
                     self.blocks.append(Wall((x, y)))
+                elif c == self.CHAR_PSYCHO:
+                    enemies.add(PsychoMover((x, y), (48, 48), Sprites.easy_enemy))
+                elif c == self.CHAR_CHASER:
+                    enemies.add(Chaser((x, y), (48, 48), Sprites.normal_enemy, player))
+                elif c == self.CHAR_SHOOTER:
+                    enemies.add(Shooter((x, y), (48, 48), Sprites.hard_enemy, player, projectiles))
+                self.floor.append(Ground((x, y)))
 
     def draw(self):
-        for i in self.blocks:
-            i.draw()
+        for floor_tile in self.floor:
+            floor_tile.draw()
+        for block_tile in self.blocks:
+            block_tile.draw()
 
 
 #Наблюдатель
@@ -89,7 +97,8 @@ class GameObserver:
     def check_enemy_collision(player: Player, enemy: Enemy):
         if GameObserver.math_collide(player, enemy):
             print("GOT COLLISION")
-        
+
+
 class GameUi:
     _labelFont = pygame.font.SysFont('Arial', 18)
     #TODO: Очки и здоровье
@@ -102,17 +111,11 @@ class GameUi:
     def draw_game(self):
         pass
 
-gamemap = GameMap()
-gamemap.create()
-
+player = Player(start_pos=(scr_width * 0.5, scr_height * 0.5), start_size=(50,50), sprite=Sprites.player)
 enemies = Enemies()
 projectiles = Projectiles()
 
-player = Player(start_pos=(scr_width * 0.5, scr_height * 0.9), start_size=(50,50), sprite=Sprites.player)
-#enemies.add(PsychoMover((scr_width * 0.5, scr_height * 0.5), (50, 50), Sprites.easy_enemy))
-#enemies.add(Chaser((scr_width * 0.5, scr_height * 0.5), (50, 50), Sprites.normal_enemy, player))
-#enemies.add(Shooter((scr_width * 0.5, scr_height * 0.5), (50, 50), Sprites.hard_enemy, player, projectiles))
-
+gamemap = GameMap()
 gameui = GameUi()
 
 def game_loop():
@@ -160,14 +163,14 @@ def game_loop():
     if (Inpunting.is_key_right_pressed):
         player.try_shoot(Direction.Right, projectiles)  
 
-    projectiles.update()                                               
-    projectiles.draw()
     player.update()
-    player.draw()
     enemies.update()
-    enemies.draw()
+    projectiles.update()
 
     gamemap.draw()
+    player.draw()
+    enemies.draw()
+    projectiles.draw()
 
 def game_over_loop():
     screen.fill(Colors.black)
@@ -184,7 +187,6 @@ def win_screen_loop():
 
 while True:
     get_events()
-
     if GameObserver.game_is_active:
         if not GameObserver.game_is_paused:
             if not GameObserver.player_is_win:

@@ -19,8 +19,8 @@ class Direction(Enum):
 class GameObject:   
     _pos_x: int = 0
     _pos_y: int = 0
-    _size_x: int = 48 # TODO
-    _size_y: int = 48 # TODO
+    _size_x: int = 48
+    _size_y: int = 48
     _color: Colors = Colors.black
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], start_color: Colors):
         self.set_position(start_pos)
@@ -420,6 +420,9 @@ class Enemies():
     def __init__(self) -> None:
         pass
     
+    def clear(self):
+        self.enemy_list.clear()
+
     def add(self, enemy: Enemy):
         self.enemy_list.append(enemy)  
 
@@ -446,3 +449,9 @@ class Wall(Block):
     default_sprite: pygame.image = Sprites.block
     def __init__(self, start_pos: tuple[int, int]):
         super().__init__(start_pos, self.default_sprite)
+
+class Ground(Block):
+    default_sprite: pygame.image = Sprites.floor
+    def __init__(self, start_pos: tuple[int, int]):
+        super().__init__(start_pos, self.default_sprite)
+        self.can_collide = False
