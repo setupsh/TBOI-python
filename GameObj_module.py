@@ -19,8 +19,8 @@ class Direction(Enum):
 class GameObject:   
     _pos_x: int = 0
     _pos_y: int = 0
-    _size_x: int = 100
-    _size_y: int = 100
+    _size_x: int = 48 # TODO
+    _size_y: int = 48 # TODO
     _color: Colors = Colors.black
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], start_color: Colors):
         self.set_position(start_pos)
@@ -31,11 +31,6 @@ class GameObject:
         self._pos_x = pos[0]
         self._pos_y = pos[1]
 
-    # TODO in MAIN
-    def add_position(self, pos: tuple[int, int]):
-        self._pos_x += pos[0]
-        self._pos_y += pos[1]
-
     def set_size(self,size: tuple[int, int]):
         self._size_x = size[0]
         self._size_y = size[1]
@@ -45,10 +40,7 @@ class GameObject:
 
     rect: pygame.Rect = None
     def draw(self):
-        self.rect = pygame.draw.rect(surface=screen, color=self._color, rect=(self._pos_x,
-         self._pos_y,
-         self._size_x,
-         self._size_y ))
+        self.rect = pygame.draw.rect(surface=screen, color=self._color, rect=(self._pos_x, self._pos_y, self._size_x, self._size_y ))
 
 
 class GameObjSprites(GameObject):
@@ -61,7 +53,7 @@ class GameObjSprites(GameObject):
         self.sprite = pygame.transform.scale(sprite, (self._size_x, self._size_y))
 
     def set_collider(self):
-        self.collider = pygame.Rect(self._pos_x, self._pos_y, self._size_x, self._size_y)    
+        self.collider = pygame.Rect(self._pos_x, self._pos_y, self._size_x, self._size_y)
 
     def draw(self):
         self.set_collider()

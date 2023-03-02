@@ -39,6 +39,7 @@ class GameMap:
             for j, c in enumerate(e):
                 x = j * Block._size_x
                 y = i * Block._size_y
+                print(x, y)
                 if c == self.CHAR_WALL:
                     self.blocks.append(Wall((x, y)))
 
@@ -108,8 +109,8 @@ enemies = Enemies()
 projectiles = Projectiles()
 
 player = Player(start_pos=(scr_width * 0.5, scr_height * 0.9), start_size=(50,50), sprite=Sprites.player)
-enemies.add(PsychoMover((scr_width * 0.5, scr_height * 0.5), (50, 50), Sprites.easy_enemy))
-enemies.add(Chaser((scr_width * 0.5, scr_height * 0.5), (50, 50), Sprites.normal_enemy, player))
+#enemies.add(PsychoMover((scr_width * 0.5, scr_height * 0.5), (50, 50), Sprites.easy_enemy))
+#enemies.add(Chaser((scr_width * 0.5, scr_height * 0.5), (50, 50), Sprites.normal_enemy, player))
 #enemies.add(Shooter((scr_width * 0.5, scr_height * 0.5), (50, 50), Sprites.hard_enemy, player, projectiles))
 
 gameui = GameUi()
