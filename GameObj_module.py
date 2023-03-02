@@ -449,6 +449,7 @@ class Wall(Block):
     default_sprite: pygame.image = Sprites.block
     def __init__(self, start_pos: tuple[int, int]):
         super().__init__(start_pos, self.default_sprite)
+        self.can_collide = True
 
 class Ground(Block):
     default_sprite: pygame.image = Sprites.floor

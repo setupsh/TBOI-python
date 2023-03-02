@@ -98,9 +98,10 @@ class GameObserver:
     def math_collide(GO1: GameObject, GO2: GameObject):
         return (GO1._pos_x + GO1._size_x >= GO2._pos_x) and (GO1._pos_x < GO2._pos_x + GO2._size_x) and (GO1._pos_y + GO1._size_y >= GO2._pos_y) and (GO1._pos_y < GO2._pos_y + GO2._size_y)
 
-    def check_enemy_collision(player: Player, enemy: Enemy):
-        if GameObserver.math_collide(player, enemy):
-            print("GOT COLLISION")
+    def check_block_collision(player: Player, gamemap: GameMap):
+        for block in gamemap.blocks:
+            if block.can_collide and GameObserver.math_collide(player, block):
+                return True
 
 
 class GameUi:
