@@ -25,14 +25,18 @@ class GameMap:
     CHAR_PSYCHO = 'P'
     CHAR_CHASER = 'C'
     CHAR_SHOOTER = 'S'
-    MAP = (level_module.load_level("testlevel"))
+    MAP = ()
 
     blocks: List[Block] = list()
     floor: List[Block] = list()
 
     def __init__(self) -> None:
+        self.load("baselevel")
         self.create()
     
+    def load(self, filename):
+        self.MAP = level_module.load_level(filename)
+
     def create(self):
         enemies.clear()
         for i, e in enumerate(self.MAP):
