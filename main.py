@@ -12,10 +12,53 @@ from GameObj_module import *
 from GUI_module import GuiLabel, Canvas, HorizontalAlignment, VerticalAlignment, obvodka, Button
 from sounds_module import init as mixerinit, Sound, Sounds, Music, Tracks
 from sprite_module import Sprites, BackGrounds
+import level_module
 
 pygame.init()
 init_screen()
 mixerinit()
+
+class GameMap():
+    CHAR_EMPTY = ' '
+    CHAR_FULL = 'x'
+    CHAR_DOOR = 'D'
+    CHAR_PSYCHO = 'P'
+    CHAR_CHASER = 'C'
+    CHAR_SHOOTER = 'S'
+    MAP = (
+        level_module.load_level('1level')
+    )             
+    blocks: List[Block] = list()
+    floor_object: List[Block] = list()
+
+    def __init__(self) -> None:
+        self.load_map('1level')
+        self.create()
+
+    def load_map(self, filename):
+        self.MAP = level_module.load_level(filename)
+
+    def create(self):
+        enemies.clear()
+        for i, e in enumerate(self.MAP):
+            for j, c in enumerate(e):
+                x = j * Block._size_x
+                y = i * Block._size_y
+                if c == 'X':
+                    self.blocks.append(Wall([x, y]))
+                elif c == self.CHAR_SHOOTER:
+                    enemies.add(Shooter((x, y), (48,48), Sprites.normal_enemy, player, projectiles))
+                elif c == self.CHAR_CHASER:
+                    enemies.add(Chaser((x, y), (48,48), Sprites.hard_enemy, player))
+                elif c == self.CHAR_PSYCHO:
+                    enemies.add(PsychoMover((x,y), (48,48), Sprites.easy_enemy))        
+                self.floor_object.append(Floor([x, y]))
+
+    def draw(self):
+        for i in self.floor_object:
+            i.draw()    
+        for i in self.blocks:
+            i.draw()
 
 #Наблюдатель
 class GameObserver:
@@ -76,6 +119,13 @@ class GameObserver:
             if enemy.is_dead:
                 particles.append_particle(Skull ([enemy._pos_x, enemy._pos_y], [50,50]))
 
+    def player_block_collide(gamemap: GameMap, player: Player, move_direction: Direction):
+        for block in GameMap.blocks:
+            if GameObserver.math_collide(block, player) and block.can_collide:
+                player.move(move_direction)            
+
+
+
 class GameUi:
     _labelFont = pygame.font.SysFont('Arial', 18)
     #TODO: Очки и здоровье
@@ -97,15 +147,13 @@ class GameUi:
     def draw_gameover(self):
         self.gameover_canvas.draw()   
 
-player = Player(start_pos=(scr_width * 0.5, scr_height * 0.9 ), start_size=(50,50), sprite=Sprites.player)
+player = Player(start_pos=(scr_width * 0.5, scr_height * 0.5 ), start_size=(50,50), sprite=Sprites.player)
 projectiles = Projectiles()
 particles = Particles()
 enemies = Enemies()
-enemies.add(PsychoMover([180,180], [50,50], Sprites.easy_enemy))
-enemies.add(Chaser([300,300], [50,50], Sprites.hard_enemy, player))
-enemies.add(Shooter([40,40], [50,50], Sprites.normal_enemy, player, projectiles))
-enemies.add(Shooter([400, 400], [100,100], Sprites.normal_enemy, player, projectiles))
+
 gameui = GameUi()
+gamemap = GameMap()
 
 def game_loop():
     screen.fill(Colors.black)
@@ -152,15 +200,18 @@ def game_loop():
     if (Inpunting.is_key_right_pressed):      
         player.try_shoot(Direction.Right, projectiles)  
 
-    particles.update()
-    particles.draw()
-    enemies.update()
-    enemies.draw()
-    projectiles.update()                                               
-    projectiles.draw()
     player.update()
-    player.draw()
+    particles.update()
+    projectiles.update()                                               
+    enemies.update()
     gameui.update()
+
+    gamemap.draw()
+    player.draw()
+    particles.draw()
+    projectiles.draw()
+    enemies.draw()
+    
     gameui.draw_game()
     GameObserver.check_projectiles(player, enemies, projectiles)
     GameObserver.enemy_is_killed(enemies, particles)
