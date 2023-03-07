@@ -236,6 +236,21 @@ class Player(GameObjSprites):
         if self.down_acceleration >= 1:
             self.down_acceleration = 1
 
+    def bounce(self, direction: Direction, force: float):
+        match direction:
+            case Direction.Right:
+                self.left_acceleration = 0
+                self.right_acceleration = force
+            case Direction.Left:
+                self.right_acceleration = 0
+                self.left_acceleration = force
+            case Direction.Down:
+                self.up_acceleration = 0
+                self.down_acceleration = force
+            case Direction.Up:
+                self.down_acceleration = 0
+                self.up_acceleration = force
+    
     def get_damage(self, value: int):
         if not self.in_invicible:
             self.health -= value

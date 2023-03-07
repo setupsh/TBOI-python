@@ -173,17 +173,13 @@ def game_loop():
 
     if (Inpunting.is_key_a_pressed):
         player.move(Direction.Left)
-        if GameObserver.check_block_collision(gamemap, player, Direction.Left):
-            player.left_acceleration = 0
     else:
         player.left_acceleration -= Time.delta_time * 3
         if player.left_acceleration < 0:
             player.left_acceleration = 0
-
+    
     if (Inpunting.is_key_d_pressed):
         player.move(Direction.Right)
-        if GameObserver.check_block_collision(gamemap, player, Direction.Right):
-            player.right_acceleration = 0
     else:
         player.right_acceleration -= Time.delta_time * 3
         if player.right_acceleration < 0:
@@ -191,8 +187,6 @@ def game_loop():
 
     if (Inpunting.is_key_w_pressed):
         player.move(Direction.Up)
-        if GameObserver.check_block_collision(gamemap, player, Direction.Up):
-            player.up_acceleration = 0
     else:
         player.up_acceleration -= Time.delta_time * 3
         if player.up_acceleration < 0:
@@ -200,8 +194,6 @@ def game_loop():
 
     if (Inpunting.is_key_s_pressed):
         player.move(Direction.Down)
-        if GameObserver.check_block_collision(gamemap, player, Direction.Down):
-            player.down_acceleration = 0
     else:
         player.down_acceleration -= Time.delta_time * 3
         if player.down_acceleration < 0:
@@ -218,6 +210,15 @@ def game_loop():
 
     if (Inpunting.is_key_right_pressed):      
         player.try_shoot(Direction.Right, projectiles)  
+
+    if GameObserver.check_block_collision(gamemap, player, Direction.Left):
+        player.bounce(Direction.Right, 1)
+    if GameObserver.check_block_collision(gamemap, player, Direction.Right):
+        player.bounce(Direction.Left, 1)
+    if GameObserver.check_block_collision(gamemap, player, Direction.Up):
+        player.bounce(Direction.Down, 1)
+    if GameObserver.check_block_collision(gamemap, player, Direction.Down):
+        player.bounce(Direction.Up, 1)
 
     player.update()
     particles.update()
