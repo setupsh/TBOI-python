@@ -212,13 +212,13 @@ def game_loop():
         player.try_shoot(Direction.Right, projectiles)  
 
     if GameObserver.check_block_collision(gamemap, player, Direction.Left):
-        player.bounce(Direction.Right, 1)
+        player.bounce(Direction.Right, 0.4)
     if GameObserver.check_block_collision(gamemap, player, Direction.Right):
-        player.bounce(Direction.Left, 1)
+        player.bounce(Direction.Left, 0.4)
     if GameObserver.check_block_collision(gamemap, player, Direction.Up):
-        player.bounce(Direction.Down, 1)
+        player.bounce(Direction.Down, 0.4)
     if GameObserver.check_block_collision(gamemap, player, Direction.Down):
-        player.bounce(Direction.Up, 1)
+        player.bounce(Direction.Up, 0.4)
 
     player.update()
     particles.update()
