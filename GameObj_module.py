@@ -102,6 +102,9 @@ class Particles:
     def append_particle(self, particle: Particle):
         self.particle_list.append(particle)
 
+    def clear(self):
+        self.particle_list.clear()     
+
     def draw(self):
         for i in self.particle_list:
             i.draw()
@@ -466,6 +469,13 @@ class Floor(Block):
     can_collide = False
     def __init__(self, start_pos: tuple[int, int]):
         super().__init__(start_pos, self.defualt_sprite)
+
+class Door(Block):
+    defualt_sprite: pygame.image = Sprites.door
+    direction: Direction = Direction.Up
+    def __init__(self, start_pos: tuple[int, int], start_direction: Direction):
+        super().__init__(start_pos, self.defualt_sprite)
+        self.direction = start_direction
 
     
         

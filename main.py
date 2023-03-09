@@ -20,7 +20,7 @@ mixerinit()
 
 class GameMap():
     CHAR_EMPTY = ' '
-    CHAR_FULL = 'x'
+    CHAR_FULL = 'X'
     CHAR_DOOR = 'D'
     CHAR_PSYCHO = 'P'
     CHAR_CHASER = 'C'
@@ -32,28 +32,49 @@ class GameMap():
     floor_object: List[Block] = list()
 
     def __init__(self) -> None:
-        self.load_map(level_module.levels_list[0])
+        self.load_map(0)
         self.create()
 
-    def load_map(self, filename):
-        self.MAP = level_module.load_level(filename)
+    def load_map(self, map_id: int):
+        self.MAP = level_module.levels_list[map_id]
 
+    def load_random_map(self):
+        self.MAP = level_module.get_random_level()
+        self.create()
+
+    def clear_all(self):
+        self.blocks.clear()
+        self.floor_object.clear()
+        particles.clear()
+        enemies.clear()    
+   
     def create(self):
-        enemies.clear()
+        self.clear_all()
         for i, e in enumerate(self.MAP):
             for j, c in enumerate(e):
                 x = j * Block._size_x
                 y = i * Block._size_y
-                if c == 'X':
+                if c == self.CHAR_FULL:
                     self.blocks.append(Wall([x, y]))
                 elif c == self.CHAR_SHOOTER:
                     enemies.add(Shooter((x, y), (48,48), Sprites.normal_enemy, player, projectiles))
                 elif c == self.CHAR_CHASER:
                     enemies.add(Chaser((x, y), (48,48), Sprites.hard_enemy, player))
                 elif c == self.CHAR_PSYCHO:
-                    enemies.add(PsychoMover((x,y), (48,48), Sprites.easy_enemy))        
+                    enemies.add(PsychoMover((x,y), (48,48), Sprites.easy_enemy))
+                elif c == self.CHAR_DOOR:
+                    start_dir: Direction
+                    if i == 0:
+                        start_dir = Direction.Up
+                    elif i == self.MAP.__len__() - 1:
+                        start_dir = Direction.Down 
+                    elif j == 0:
+                        start_dir = Direction.Left
+                    elif j == self.MAP[i].__len__() - 2:
+                        start_dir = Direction.Right  
+                    self.blocks.append(Door([x,y], start_dir))         
                 self.floor_object.append(Floor([x, y]))
-
+                
     def draw(self):
         for i in self.floor_object:
             i.draw()    
@@ -133,7 +154,10 @@ class GameObserver:
                     case Direction.Down:
                         box_cast._pos_y += player._size_x
                 if GameObserver.math_collide(block, box_cast):
+                    if type(block) == Door and enemies.enemy_list.__len__() == 0:
+                        gamemap.load_random_map()
                     return True
+                
         return False                        
 
 class GameUi:
@@ -225,15 +249,11 @@ def game_loop():
     enemies.update()
     gameui.update()
     
-    box_cast = GameObject((player._pos_x + player._size_x * 0.5 , player._pos_y + player._size_x * 0.5), (8, 8), Colors.black)
-    box_cast._pos_x -= player._size_x
-
     gamemap.draw()
     player.draw()
     particles.draw()
     projectiles.draw()
     enemies.draw()
-    box_cast.draw()
     
     gameui.draw_game()
     GameObserver.check_projectiles(player, enemies, projectiles)
