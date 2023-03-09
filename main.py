@@ -26,13 +26,13 @@ class GameMap():
     CHAR_CHASER = 'C'
     CHAR_SHOOTER = 'S'
     MAP = (
-        level_module.load_level('1level')
+        
     )             
     blocks: List[Block] = list()
     floor_object: List[Block] = list()
 
     def __init__(self) -> None:
-        self.load_map('1level')
+        self.load_map(level_module.levels_list[0])
         self.create()
 
     def load_map(self, filename):
@@ -121,10 +121,20 @@ class GameObserver:
 
     def player_block_collide(gamemap: GameMap, player: Player, move_direction: Direction):
         for block in GameMap.blocks:
-            if GameObserver.math_collide(block, player) and block.can_collide:
-                player.move(move_direction)            
-
-
+            if block.can_collide and GameObserver.math_collide(block, player):
+                box_cast = GameObject((player._pos_x + player._size_x * 0.5, player._pos_y + player._size_y * 0.5), (8, 8), Colors.black)
+                match move_direction:
+                    case Direction.Left:
+                        box_cast._pos_x -= player._size_x
+                    case Direction.Right:
+                        box_cast._pos_x += player._size_x
+                    case Direction.Up:
+                        box_cast._pos_y -= player._size_x
+                    case Direction.Down:
+                        box_cast._pos_y += player._size_x
+                if GameObserver.math_collide(block, box_cast):
+                    return True
+        return False                        
 
 class GameUi:
     _labelFont = pygame.font.SysFont('Arial', 18)
@@ -162,7 +172,7 @@ def game_loop():
 
     if (Inpunting.is_key_a_pressed):
         player.move(Direction.Left)
-    else:
+    else:    
         player.left_acceleration -= Time.delta_time * 3
         if player.left_acceleration < 0:
             player.left_acceleration = 0
@@ -198,19 +208,32 @@ def game_loop():
         player.try_shoot(Direction.Left, projectiles)
 
     if (Inpunting.is_key_right_pressed):      
-        player.try_shoot(Direction.Right, projectiles)  
+        player.try_shoot(Direction.Right, projectiles) 
+
+    if GameObserver.player_block_collide(gamemap, player, Direction.Left):
+        player.left_acceleration = 0
+    if GameObserver.player_block_collide(gamemap, player, Direction.Right):
+        player.right_acceleration = 0    
+    if GameObserver.player_block_collide(gamemap, player, Direction.Up):
+        player.up_acceleration = 0    
+    if GameObserver.player_block_collide(gamemap, player, Direction.Down):
+        player.down_acceleration = 0                 
 
     player.update()
     particles.update()
     projectiles.update()                                               
     enemies.update()
     gameui.update()
+    
+    box_cast = GameObject((player._pos_x + player._size_x * 0.5 , player._pos_y + player._size_x * 0.5), (8, 8), Colors.black)
+    box_cast._pos_x -= player._size_x
 
     gamemap.draw()
     player.draw()
     particles.draw()
     projectiles.draw()
     enemies.draw()
+    box_cast.draw()
     
     gameui.draw_game()
     GameObserver.check_projectiles(player, enemies, projectiles)
