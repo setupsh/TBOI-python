@@ -26,20 +26,30 @@ class GameMap():
     CHAR_CHASER = 'C'
     CHAR_SHOOTER = 'S'
     MAP = (
-        level_module.load_level('1level')
+        
     )             
     blocks: List[Block] = list()
     floor_object: List[Block] = list()
 
     def __init__(self) -> None:
-        self.load_map('1level')
+        self.load_map(0)
         self.create()
 
-    def load_map(self, filename):
-        self.MAP = level_module.load_level(filename)
+    def load_map(self, map_id: int):
+        self.MAP = level_module.levels_list[map_id]
 
+    def load_random_map(self):
+        self.MAP = level_module.get_random_level()
+        self.create()
+
+    def clear_all(self):
+        self.blocks.clear()
+        self.floor_object.clear()
+        particles.clear()
+        enemies.clear()    
+   
     def create(self):
-        enemies.clear()
+        self.clear_all()
         for i, e in enumerate(self.MAP):
             for j, c in enumerate(e):
                 x = j * Block._size_x
@@ -51,9 +61,31 @@ class GameMap():
                 elif c == self.CHAR_CHASER:
                     enemies.add(Chaser((x, y), (48,48), Sprites.hard_enemy, player))
                 elif c == self.CHAR_PSYCHO:
-                    enemies.add(PsychoMover((x,y), (48,48), Sprites.easy_enemy))        
+                    enemies.add(PsychoMover((x,y), (48,48), Sprites.easy_enemy))
+                elif c == self.CHAR_DOOR:
+                    start_dir: Direction
+                    if i == 0:
+                        start_dir = Direction.Up
+                    elif i == self.MAP.__len__() - 1:
+                        start_dir = Direction.Down 
+                    elif j == 0:
+                        start_dir = Direction.Left
+                    elif j == self.MAP[i].__len__() - 2:
+                        start_dir = Direction.Right  
+                    self.blocks.append(Door([x,y], start_dir))         
                 self.floor_object.append(Floor([x, y]))
 
+    def player_teleport_door(self,  direction: Direction):
+        match direction:      
+            case Direction.Left:
+                player.set_position([scr_width - 97 , scr_height * 0.5 - player._size_x * 0.5])
+            case Direction.Right:
+                player.set_position([49 , scr_height * 0.5 - player._size_x * 0.5])
+            case Direction.Up:
+                player.set_position([scr_width * 0.5 - player._size_x * 0.5 , scr_height - 97])
+            case Direction.Down:
+                player.set_position([scr_width * 0.5 - player._size_x * 0.5 , 49])           
+                
     def draw(self):
         for i in self.floor_object:
             i.draw()    
@@ -122,20 +154,22 @@ class GameObserver:
     def check_block_collision(gamemap: GameMap, player: Player, move_direction: Direction):
         for block in GameMap.blocks:
             if block.can_collide and GameObserver.math_collide(block, player):
-                box_cast = GameObject((player._pos_x + player._size_x * 0.5 - 4, player._pos_y + player._size_y * 0.5 - 4), (8, 8), Colors.black)
+                box_cast = GameObject((player._pos_x + player._size_x * 0.5, player._pos_y + player._size_y * 0.5), (8, 8), Colors.black)
                 match move_direction:
                     case Direction.Left:
-                        box_cast._pos_x -= player._size_x * 0.5
+                        box_cast._pos_x -= player._size_x
                     case Direction.Right:
-                        box_cast._pos_x += player._size_x * 0.5
+                        box_cast._pos_x += player._size_x
                     case Direction.Up:
-                        box_cast._pos_y -= player._size_y * 0.5
+                        box_cast._pos_y -= player._size_x
                     case Direction.Down:
-                        box_cast._pos_y += player._size_y * 0.5
+                        box_cast._pos_y += player._size_x
                 if GameObserver.math_collide(block, box_cast):
+                    if type(block) == Door and enemies.enemy_list.__len__() == 0:
+                        gamemap.load_random_map()
+                        gamemap.player_teleport_door(block.direction)
                     return True
-        return False
-
+        return False                        
 
 class GameUi:
     _labelFont = pygame.font.SysFont('Arial', 18)
@@ -158,7 +192,7 @@ class GameUi:
     def draw_gameover(self):
         self.gameover_canvas.draw()   
 
-player = Player(start_pos=(scr_width * 0.5, scr_height * 0.5 ), start_size=(50,50), sprite=Sprites.player)
+player = Player(start_pos=(scr_width * 0.5 - 24, scr_height * 0.5 - 24 ), start_size=(48,48), sprite=Sprites.player)
 projectiles = Projectiles()
 particles = Particles()
 enemies = Enemies()
@@ -173,7 +207,7 @@ def game_loop():
 
     if (Inpunting.is_key_a_pressed):
         player.move(Direction.Left)
-    else:
+    else:    
         player.left_acceleration -= Time.delta_time * 3
         if player.left_acceleration < 0:
             player.left_acceleration = 0
@@ -209,7 +243,16 @@ def game_loop():
         player.try_shoot(Direction.Left, projectiles)
 
     if (Inpunting.is_key_right_pressed):      
-        player.try_shoot(Direction.Right, projectiles)  
+        player.try_shoot(Direction.Right, projectiles) 
+
+    if GameObserver.player_block_collide(gamemap, player, Direction.Left):
+        player.left_acceleration = 0
+    if GameObserver.player_block_collide(gamemap, player, Direction.Right):
+        player.right_acceleration = 0    
+    if GameObserver.player_block_collide(gamemap, player, Direction.Up):
+        player.up_acceleration = 0    
+    if GameObserver.player_block_collide(gamemap, player, Direction.Down):
+        player.down_acceleration = 0                 
 
     if GameObserver.check_block_collision(gamemap, player, Direction.Left):
         player.bounce(Direction.Right, 0.4)
@@ -225,7 +268,7 @@ def game_loop():
     projectiles.update()                                               
     enemies.update()
     gameui.update()
-
+    
     gamemap.draw()
     player.draw()
     particles.draw()
