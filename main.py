@@ -74,6 +74,17 @@ class GameMap():
                         start_dir = Direction.Right  
                     self.blocks.append(Door([x,y], start_dir))         
                 self.floor_object.append(Floor([x, y]))
+
+    def player_teleport_door(self,  direction: Direction):
+        match direction:      
+            case Direction.Left:
+                player.set_position([scr_width - 97 , scr_height * 0.5 - player._size_x * 0.5])
+            case Direction.Right:
+                player.set_position([49 , scr_height * 0.5 - player._size_x * 0.5])
+            case Direction.Up:
+                player.set_position([scr_width * 0.5 - player._size_x * 0.5 , scr_height - 97])
+            case Direction.Down:
+                player.set_position([scr_width * 0.5 - player._size_x * 0.5 , 49])           
                 
     def draw(self):
         for i in self.floor_object:
@@ -156,6 +167,7 @@ class GameObserver:
                 if GameObserver.math_collide(block, box_cast):
                     if type(block) == Door and enemies.enemy_list.__len__() == 0:
                         gamemap.load_random_map()
+                        gamemap.player_teleport_door(block.direction)
                     return True
                 
         return False                        
@@ -181,7 +193,7 @@ class GameUi:
     def draw_gameover(self):
         self.gameover_canvas.draw()   
 
-player = Player(start_pos=(scr_width * 0.5, scr_height * 0.5 ), start_size=(50,50), sprite=Sprites.player)
+player = Player(start_pos=(scr_width * 0.5 - 24, scr_height * 0.5 - 24 ), start_size=(48,48), sprite=Sprites.player)
 projectiles = Projectiles()
 particles = Particles()
 enemies = Enemies()
