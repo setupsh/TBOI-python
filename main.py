@@ -13,84 +13,56 @@ from GUI_module import GuiLabel, Canvas, HorizontalAlignment, VerticalAlignment,
 from sounds_module import init as mixerinit, Sound, Sounds, Music, Tracks
 from sprite_module import Sprites, BackGrounds
 import level_module
+from level_module import Level, Room
 
 pygame.init()
 init_screen()
 mixerinit()
 
 class GameMap():
-    CHAR_EMPTY = ' '
-    CHAR_FULL = 'X'
-    CHAR_DOOR = 'D'
-    CHAR_PSYCHO = 'P'
-    CHAR_CHASER = 'C'
-    CHAR_SHOOTER = 'S'
-    MAP = (
-        
-    )             
-    blocks: List[Block] = list()
-    floor_object: List[Block] = list()
+    current_level: Level
+    current_room: Room
+
+    @property 
+    def player(self): return self.current_room.player
+
+    @property 
+    def enemies(self): return self.current_room.enemies
+    
+    @property 
+    def particles(self): return self.current_room.particles
+
+    @property 
+    def projectiles(self): return self.current_room.projectiles
 
     def __init__(self) -> None:
-        self.load_map(0)
-        self.create()
+        self.current_room = Room(self.load_map(0))
+
+    def goto_next_room(self):
+        self.current_room = Room(self.load_random_map())
 
     def load_map(self, map_id: int):
-        self.MAP = level_module.levels_list[map_id]
+        return level_module.levels_list[map_id]
 
     def load_random_map(self):
-        self.MAP = level_module.get_random_level()
-        self.create()
+        return level_module.get_random_level()
 
-    def clear_all(self):
-        self.blocks.clear()
-        self.floor_object.clear()
-        particles.clear()
-        enemies.clear()    
-   
-    def create(self):
-        self.clear_all()
-        for i, e in enumerate(self.MAP):
-            for j, c in enumerate(e):
-                x = j * Block._size_x
-                y = i * Block._size_y
-                if c == self.CHAR_FULL:
-                    self.blocks.append(Wall([x, y]))
-                elif c == self.CHAR_SHOOTER:
-                    enemies.add(Shooter((x, y), (48,48), Sprites.normal_enemy, player, projectiles))
-                elif c == self.CHAR_CHASER:
-                    enemies.add(Chaser((x, y), (48,48), Sprites.hard_enemy, player))
-                elif c == self.CHAR_PSYCHO:
-                    enemies.add(PsychoMover((x,y), (48,48), Sprites.easy_enemy))
-                elif c == self.CHAR_DOOR:
-                    start_dir: Direction
-                    if i == 0:
-                        start_dir = Direction.Up
-                    elif i == self.MAP.__len__() - 1:
-                        start_dir = Direction.Down 
-                    elif j == 0:
-                        start_dir = Direction.Left
-                    elif j == self.MAP[i].__len__() - 2:
-                        start_dir = Direction.Right  
-                    self.blocks.append(Door([x,y], start_dir))         
-                self.floor_object.append(Floor([x, y]))
-
-    def player_teleport_door(self,  direction: Direction):
+    def teleport_player_to_door(self,  direction: Direction):
         match direction:      
             case Direction.Left:
-                player.set_position([scr_width - 97 , scr_height * 0.5 - player._size_x * 0.5])
+                self.player.set_position([scr_width - 97 , scr_height * 0.5 - self.player._size_x * 0.5])
             case Direction.Right:
-                player.set_position([49 , scr_height * 0.5 - player._size_x * 0.5])
+                self.player.set_position([49 , scr_height * 0.5 - self.player._size_x * 0.5])
             case Direction.Up:
-                player.set_position([scr_width * 0.5 - player._size_x * 0.5 , scr_height - 97])
+                self.player.set_position([scr_width * 0.5 - self.player._size_x * 0.5 , scr_height - 97])
             case Direction.Down:
-                player.set_position([scr_width * 0.5 - player._size_x * 0.5 , 49])           
-                
+                self.player.set_position([scr_width * 0.5 - self.player._size_x * 0.5 , 49])           
+
+    def update(self):
+        self.current_room.update()
+
     def draw(self):
-        for i in self.floor_object:
-            i.draw()    
-        for i in self.blocks:
-            i.draw()
+        self.current_room.draw()
 
 #Наблюдатель
 class GameObserver:
@@ -130,10 +102,6 @@ class GameObserver:
     def math_collide(GO1, GO2):
         return (GO1._pos_x + GO1._size_x >= GO2._pos_x) and (GO1._pos_x < GO2._pos_x + GO2._size_x) and (GO1._pos_y + GO1._size_y >= GO2._pos_y) and (GO1._pos_y < GO2._pos_y + GO2._size_y)    
 
-    def check_enemy_collision(player: Player, enemy: Enemy):
-        if GameObserver.math_collide(player, enemy):
-            enemy.attack(player)
-
     def check_projectiles(player: Player, enemies: Enemies, projectiles: Projectiles):
         for projectile in projectiles.projectiles_list:
             if projectile.shoot_player:
@@ -152,7 +120,7 @@ class GameObserver:
                 particles.append_particle(Skull ([enemy._pos_x, enemy._pos_y], [50,50]))
 
     def check_block_collision(gamemap: GameMap, player: Player, move_direction: Direction):
-        for block in GameMap.blocks:
+        for block in gamemap.current_room.blocks:
             if block.can_collide and GameObserver.math_collide(block, player):
                 box_cast = GameObject((player._pos_x + player._size_x * 0.5, player._pos_y + player._size_y * 0.5), (8, 8), Colors.black)
                 match move_direction:
@@ -165,9 +133,9 @@ class GameObserver:
                     case Direction.Down:
                         box_cast._pos_y += player._size_x
                 if GameObserver.math_collide(block, box_cast):
-                    if type(block) == Door and enemies.enemy_list.__len__() == 0:
-                        gamemap.load_random_map()
-                        gamemap.player_teleport_door(block.direction)
+                    if type(block) == Door and gamemap.current_room.is_cleared:
+                        gamemap.goto_next_room()
+                        gamemap.teleport_player_to_door(block.direction)
                     return True
         return False                        
 
@@ -184,18 +152,13 @@ class GameUi:
         self.gameover_canvas.extend_el([self._gameover_title])
         self.game_canvas.extend_el([self._game_life_label])
     def update(self):
-        self._game_life_label.set_label(f'{player.health}')
+        self._game_life_label.set_label(f'{gamemap.player.health}')
 
     def draw_game(self):
         self.game_canvas.draw()
 
     def draw_gameover(self):
-        self.gameover_canvas.draw()   
-
-player = Player(start_pos=(scr_width * 0.5 - 24, scr_height * 0.5 - 24 ), start_size=(48,48), sprite=Sprites.player)
-projectiles = Projectiles()
-particles = Particles()
-enemies = Enemies()
+        self.gameover_canvas.draw()
 
 gameui = GameUi()
 gamemap = GameMap()
@@ -206,79 +169,63 @@ def game_loop():
     GameObserver.timer = int(GameObserver.secs)
 
     if (Inpunting.is_key_a_pressed):
-        player.move(Direction.Left)
+        gamemap.player.move(Direction.Left)
     else:    
-        player.left_acceleration -= Time.delta_time * 3
-        if player.left_acceleration < 0:
-            player.left_acceleration = 0
+        gamemap.player.left_acceleration -= Time.delta_time * 3
+        if gamemap.player.left_acceleration < 0:
+            gamemap.player.left_acceleration = 0
     
     if (Inpunting.is_key_d_pressed):
-        player.move(Direction.Right)
+        gamemap.player.move(Direction.Right)
     else:
-        player.right_acceleration -= Time.delta_time * 3
-        if player.right_acceleration < 0:
-            player.right_acceleration = 0
+        gamemap.player.right_acceleration -= Time.delta_time * 3
+        if gamemap.player.right_acceleration < 0:
+            gamemap.player.right_acceleration = 0
 
     if (Inpunting.is_key_w_pressed):
-        player.move(Direction.Up)
+        gamemap.player.move(Direction.Up)
     else:
-        player.up_acceleration -= Time.delta_time * 3
-        if player.up_acceleration < 0:
-            player.up_acceleration = 0        
+        gamemap.player.up_acceleration -= Time.delta_time * 3
+        if gamemap.player.up_acceleration < 0:
+            gamemap.player.up_acceleration = 0        
 
     if (Inpunting.is_key_s_pressed):
-        player.move(Direction.Down)
+        gamemap.player.move(Direction.Down)
     else:
-        player.down_acceleration -= Time.delta_time * 3
-        if player.down_acceleration < 0:
-            player.down_acceleration = 0       
+        gamemap.player.down_acceleration -= Time.delta_time * 3
+        if gamemap.player.down_acceleration < 0:
+            gamemap.player.down_acceleration = 0       
         
     if (Inpunting.is_key_up_pressed):
-        player.try_shoot(Direction.Up, projectiles)
+        gamemap.player.try_shoot(Direction.Up, gamemap.projectiles)
 
     if (Inpunting.is_key_down_pressed):
-        player.try_shoot(Direction.Down, projectiles)
+        gamemap.player.try_shoot(Direction.Down, gamemap.projectiles)
 
     if (Inpunting.is_key_left_pressed):
-        player.try_shoot(Direction.Left, projectiles)
+        gamemap.player.try_shoot(Direction.Left, gamemap.projectiles)
 
     if (Inpunting.is_key_right_pressed):      
-        player.try_shoot(Direction.Right, projectiles) 
+        gamemap.player.try_shoot(Direction.Right, gamemap.projectiles)               
 
-    if GameObserver.player_block_collide(gamemap, player, Direction.Left):
-        player.left_acceleration = 0
-    if GameObserver.player_block_collide(gamemap, player, Direction.Right):
-        player.right_acceleration = 0    
-    if GameObserver.player_block_collide(gamemap, player, Direction.Up):
-        player.up_acceleration = 0    
-    if GameObserver.player_block_collide(gamemap, player, Direction.Down):
-        player.down_acceleration = 0                 
+    if GameObserver.check_block_collision(gamemap, gamemap.player, Direction.Left):
+        gamemap.player.bounce(Direction.Right, 0.4)
+    if GameObserver.check_block_collision(gamemap, gamemap.player, Direction.Right):
+        gamemap.player.bounce(Direction.Left, 0.4)
+    if GameObserver.check_block_collision(gamemap, gamemap.player, Direction.Up):
+        gamemap.player.bounce(Direction.Down, 0.4)
+    if GameObserver.check_block_collision(gamemap, gamemap.player, Direction.Down):
+        gamemap.player.bounce(Direction.Up, 0.4)
 
-    if GameObserver.check_block_collision(gamemap, player, Direction.Left):
-        player.bounce(Direction.Right, 0.4)
-    if GameObserver.check_block_collision(gamemap, player, Direction.Right):
-        player.bounce(Direction.Left, 0.4)
-    if GameObserver.check_block_collision(gamemap, player, Direction.Up):
-        player.bounce(Direction.Down, 0.4)
-    if GameObserver.check_block_collision(gamemap, player, Direction.Down):
-        player.bounce(Direction.Up, 0.4)
-
-    player.update()
-    particles.update()
-    projectiles.update()                                               
-    enemies.update()
+    gamemap.update()
     gameui.update()
     
     gamemap.draw()
-    player.draw()
-    particles.draw()
-    projectiles.draw()
-    enemies.draw()
-
     gameui.draw_game()
-    GameObserver.check_projectiles(player, enemies, projectiles)
-    GameObserver.enemy_is_killed(enemies, particles)
-    if player.is_dead:
+
+    GameObserver.check_projectiles(gamemap.player, gamemap.enemies, gamemap.projectiles)
+    GameObserver.enemy_is_killed(gamemap.enemies, gamemap.particles)
+    if gamemap.player.is_dead:
         GameObserver.game_is_over = True
 
 def game_over_loop():

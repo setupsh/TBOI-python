@@ -491,6 +491,3 @@ class Door(Block):
     def __init__(self, start_pos: tuple[int, int], start_direction: Direction):
         super().__init__(start_pos, self.defualt_sprite)
         self.direction = start_direction
-
-    
-        
