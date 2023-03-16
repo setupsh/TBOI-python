@@ -64,8 +64,7 @@ class Room:
                 self.floor.append(Floor([x, y]))
 
     @property
-    def is_cleared(self):
-        return len(self.enemies.enemy_list) == 0
+    def is_cleared(self) -> bool: return len(self.enemies.enemy_list) == 0
 
     def update(self):
         self.player.update()
@@ -84,8 +83,14 @@ class Room:
         self.enemies.draw()
 
 class Level:
-    def __init__(self) -> None:
+    rooms: List[Room]
+    transitions = {} # TODO: оформить ключи [f"{level_name}-{direction}"] = 1
+
+    def __init__(self, iterations: int) -> None:
+        self.generate(iterations)
+
+    def generate(self, iterations: int):
         pass
 
-    def generate(self):
-        pass
+    def get_next_room(self, room_id: int):
+        return self.rooms[room_id]

@@ -20,8 +20,8 @@ init_screen()
 mixerinit()
 
 class GameMap():
-    current_level: Level
-    current_room: Room
+    current_room: Room # текущая комната
+    # current_level: Level # хранилище комнат 
 
     @property 
     def player(self): return self.current_room.player
@@ -38,7 +38,7 @@ class GameMap():
     def __init__(self) -> None:
         self.current_room = Room(self.load_map(0))
 
-    def goto_next_room(self):
+    def goto_next_room(self): # ! Временно
         self.current_room = Room(self.load_random_map())
 
     def load_map(self, map_id: int):
@@ -48,7 +48,7 @@ class GameMap():
         return level_module.get_random_level()
 
     def teleport_player_to_door(self,  direction: Direction):
-        match direction:      
+        match direction:
             case Direction.Left:
                 self.player.set_position([scr_width - 97 , scr_height * 0.5 - self.player._size_x * 0.5])
             case Direction.Right:
@@ -259,8 +259,3 @@ while True:
     
     pygame.display.update()  
     Time.update()
-
-
-    
-
-
