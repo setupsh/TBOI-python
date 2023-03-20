@@ -86,9 +86,8 @@ class Skull(Particle):
         return super().update()
 
 class Particles:
-    particle_list: List[Particle] = []
     def __init__(self) -> None:
-        pass                     
+        self.particle_list: List[Particle] = []                
 
     def remove_particle(self, particle: Particle):
         self.particle_list.remove(particle)
@@ -160,10 +159,8 @@ class CustomProjectile(Projectile):
 
 
 class Projectiles:
-    projectiles_list: List[Projectile] = []
-    
     def __init__(self) -> None:
-        pass                     
+        self.projectiles_list: List[Projectile] = []               
 
     def remove_projectile(self, projectile: Projectile):
         self.projectiles_list.remove(projectile)
@@ -300,9 +297,9 @@ class Enemy(GameObjSprites):
     damage: int = 1
     is_dead: bool = False
 
-    target: GameObject = None
 
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image):
+        self.target: GameObject = None
         super().__init__(start_pos, start_size, sprite)
 
     def update(self):
@@ -445,10 +442,9 @@ class Shooter(Enemy):
                     self.timer = self.comeback_time
 
 class Enemies():
-    enemy_list: List[Enemy] = []
-
     def __init__(self) -> None:
-        pass
+        self.enemy_list: List[Enemy] = []
+
     def add(self, enemy: Enemy):
         self.enemy_list.append(enemy)  
 
@@ -488,6 +484,16 @@ class Floor(Block):
 class Door(Block):
     defualt_sprite: pygame.image = Sprites.door
     direction: Direction = Direction.Up
+
+    @property
+    def alternate_direction(self) -> Direction:
+        match self.direction:
+            case Direction.Up: return Direction.Down
+            case Direction.Down: return Direction.Up
+            case Direction.Left: return Direction.Right
+            case Direction.Right: return Direction.Left
+        return Direction.Up
+
     def __init__(self, start_pos: tuple[int, int], start_direction: Direction):
         super().__init__(start_pos, self.defualt_sprite)
         self.direction = start_direction

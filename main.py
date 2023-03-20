@@ -20,13 +20,11 @@ init_screen()
 mixerinit()
 
 class GameMap():
-    current_room: Room # текущая комната
-    # current_level: Level # хранилище комнат 
-
+    
     @property 
     def player(self): return self.current_room.player
 
-    @property 
+    @property
     def enemies(self): return self.current_room.enemies
     
     @property 
@@ -36,27 +34,22 @@ class GameMap():
     def projectiles(self): return self.current_room.projectiles
 
     def __init__(self) -> None:
-        self.current_room = Room(self.load_map(0))
+        self.current_level = Level(expand_iterations=4)
+        self.current_room = self.current_level.get_room(0)
 
-    def goto_next_room(self): # ! Временно
-        self.current_room = Room(self.load_random_map())
-
-    def load_map(self, map_id: int):
-        return level_module.levels_list[map_id]
-
-    def load_random_map(self):
-        return level_module.get_random_level()
+    def goto_next_room(self, direction: Direction):
+        self.current_room = self.current_level.get_next_room(self.current_room, direction)
 
     def teleport_player_to_door(self,  direction: Direction):
         match direction:
             case Direction.Left:
-                self.player.set_position([scr_width - 97 , scr_height * 0.5 - self.player._size_x * 0.5])
+                self.player.set_position([scr_width - 128 , scr_height * 0.5 - self.player._size_x * 0.5])
             case Direction.Right:
-                self.player.set_position([49 , scr_height * 0.5 - self.player._size_x * 0.5])
+                self.player.set_position([64 , scr_height * 0.5 - self.player._size_x * 0.5])
             case Direction.Up:
-                self.player.set_position([scr_width * 0.5 - self.player._size_x * 0.5 , scr_height - 97])
+                self.player.set_position([scr_width * 0.5 - self.player._size_x * 0.5 , scr_height - 128])
             case Direction.Down:
-                self.player.set_position([scr_width * 0.5 - self.player._size_x * 0.5 , 49])           
+                self.player.set_position([scr_width * 0.5 - self.player._size_x * 0.5 , 64])           
 
     def update(self):
         self.current_room.update()
@@ -134,7 +127,7 @@ class GameObserver:
                         box_cast._pos_y += player._size_x
                 if GameObserver.math_collide(block, box_cast):
                     if type(block) == Door and gamemap.current_room.is_cleared:
-                        gamemap.goto_next_room()
+                        gamemap.goto_next_room(block.direction)
                         gamemap.teleport_player_to_door(block.direction)
                     return True
         return False                        

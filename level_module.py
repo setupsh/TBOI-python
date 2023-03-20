@@ -5,18 +5,14 @@ from GameObj_module import *
 assets_path = os.path.dirname(__file__) + '\Assets\Levels\\'
 extension = '.txt'
 
-levels_list = []
+rooms_list = []
 
-def load_level(filename: str):
+def load_room_from_file(filename: str):
     file = open(assets_path + filename, 'r')
     return file.readlines()
 
-def get_random_level():
-    global levels_list
-    return random.choice(levels_list)
-
 for i in os.listdir(assets_path):
-    levels_list.append(load_level(i))
+    rooms_list.append(load_room_from_file(i))
 
 class Room:
     CHAR_EMPTY = ' '
@@ -29,6 +25,7 @@ class Room:
     player = Player(start_pos=(scr_width * 0.5 - 24, scr_height * 0.5 - 24 ), start_size=(48,48), sprite=Sprites.player)
     
     def __init__(self, layout: list[str]) -> None:
+        self.id = hash(self)
         self.layout = layout
         self.blocks: List[Block] = list()
         self.floor: List[Block] = list()
@@ -66,6 +63,13 @@ class Room:
     @property
     def is_cleared(self) -> bool: return len(self.enemies.enemy_list) == 0
 
+    def get_blocks_of_type(self, t: type) -> List:
+        result: List[t] = list()
+        for block in self.blocks:
+            if type(block) == t:
+                result.append(block)
+        return result
+
     def update(self):
         self.player.update()
         self.particles.update()
@@ -83,14 +87,49 @@ class Room:
         self.enemies.draw()
 
 class Level:
-    rooms: List[Room]
-    transitions = {} # TODO: оформить ключи [f"{level_name}-{direction}"] = 1
+    baseroom: Room
+    rooms: dict[int, Room]
+    transitions: dict[str, int] = {}
 
-    def __init__(self, iterations: int) -> None:
-        self.generate(iterations)
+    def __init__(self, expand_iterations: int) -> None:
+        self.generate(expand_iterations)
 
-    def generate(self, iterations: int):
+    def generate(self, expand_iterations: int):
+        self.rooms = {}
+        self.baseroom = Room(self._load_room(0))
+        new_room = self.baseroom
+        self.rooms[new_room.id] = new_room
+        for door in new_room.get_blocks_of_type(Door):
+            door: Door
+            neighbour_room = Room(self._load_random_room())
+            self.transitions[f"{new_room.id}-{door.direction}"] = neighbour_room.id
+            self.transitions[f"{neighbour_room.id}-{door.alternate_direction}"] = new_room.id
+            self.rooms[neighbour_room.id] = neighbour_room
+        print(self.transitions)
+        print(set(map(hash, self.rooms)))
+        # for i in range(1, expand_iterations):
+        #     self.create_room()
+
+    def create_room(self):
         pass
 
-    def get_next_room(self, room_id: int):
-        return self.rooms[room_id]
+    def _load_room(self, room_id: int):
+        return rooms_list[room_id]
+    
+    def _load_random_room(self):
+        return random.choice(rooms_list)
+
+    def get_room(self, room_id: int) -> Room:
+        return self.rooms.get(room_id, self.baseroom)
+
+    def get_random_room(self) -> Room:
+        return random.choice(self.rooms)
+
+    def get_next_room(self, current_room: Room, door_direction: Direction) -> Room:
+        key = f"{current_room.id}-{door_direction}"
+        print(f"Try find: {key}.")
+        if key in self.transitions:
+           print(f"Got the key. Next level will be {self.transitions[key]}")
+           return self.get_room(self.transitions[key])
+        print("Gotn't key.")
+        return self.baseroom
