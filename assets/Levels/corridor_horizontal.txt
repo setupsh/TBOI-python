@@ -1,6 +1,6 @@
-XXXXXXXXXXXXXXXXXXX                    
+XXXXXXXXXXXXXXXXXXX
 X_________________X
-X___S____C_____S__X
+X_________________X
 X_________________X
 X_________________X
 D_________________D
@@ -8,4 +8,4 @@ X_________________X
 X_________________X
 X_________________X
 X_________________X
-XXXXXXXXXDXXXXXXXXX
+XXXXXXXXXXXXXXXXXXX

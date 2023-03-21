@@ -34,22 +34,23 @@ class GameMap():
     def projectiles(self): return self.current_room.projectiles
 
     def __init__(self) -> None:
-        self.current_level = Level(expand_iterations=4)
+        self.current_level = Level(expand_iterations=5)
         self.current_room = self.current_level.get_room(0)
 
     def goto_next_room(self, direction: Direction):
         self.current_room = self.current_level.get_next_room(self.current_room, direction)
 
     def teleport_player_to_door(self,  direction: Direction):
+        self.player.stop_inertion()
         match direction:
             case Direction.Left:
-                self.player.set_position([scr_width - 128 , scr_height * 0.5 - self.player._size_x * 0.5])
+                self.player.set_position([scr_width - 112, scr_height * 0.5 - self.player._size_x * 0.5])
             case Direction.Right:
-                self.player.set_position([64 , scr_height * 0.5 - self.player._size_x * 0.5])
+                self.player.set_position([64, scr_height * 0.5 - self.player._size_x * 0.5])
             case Direction.Up:
-                self.player.set_position([scr_width * 0.5 - self.player._size_x * 0.5 , scr_height - 128])
+                self.player.set_position([scr_width * 0.5 - self.player._size_x * 0.5, scr_height - 112])
             case Direction.Down:
-                self.player.set_position([scr_width * 0.5 - self.player._size_x * 0.5 , 64])           
+                self.player.set_position([scr_width * 0.5 - self.player._size_x * 0.5, 64])           
 
     def update(self):
         self.current_room.update()

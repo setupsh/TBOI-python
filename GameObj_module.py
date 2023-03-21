@@ -163,7 +163,8 @@ class Projectiles:
         self.projectiles_list: List[Projectile] = []               
 
     def remove_projectile(self, projectile: Projectile):
-        self.projectiles_list.remove(projectile)
+        if projectile in self.projectiles_list:
+            self.projectiles_list.remove(projectile)
     
     def append_projectile(self, projectile: Projectile):
         self.projectiles_list.append(projectile)
@@ -251,6 +252,12 @@ class Player(GameObjSprites):
                 self.down_acceleration = 0
                 self.up_acceleration = force
     
+    def stop_inertion(self):
+        self.left_acceleration = 0
+        self.right_acceleration = 0
+        self.up_acceleration = 0
+        self.down_acceleration = 0    
+
     def get_damage(self, value: int):
         if not self.in_invicible:
             self.health -= value
