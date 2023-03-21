@@ -22,6 +22,7 @@ class GameObject:
     _size_x: int = 48
     _size_y: int = 48
     _color: Colors = Colors.black
+
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], start_color: Colors):
         self.set_position(start_pos)
         self.set_size(start_size)
@@ -490,8 +491,7 @@ class Floor(Block):
 
 class Door(Block):
     defualt_sprite: pygame.image = Sprites.door
-    direction: Direction = Direction.Up
-
+    
     @property
     def alternate_direction(self) -> Direction:
         match self.direction:
@@ -503,4 +503,4 @@ class Door(Block):
 
     def __init__(self, start_pos: tuple[int, int], start_direction: Direction):
         super().__init__(start_pos, self.defualt_sprite)
-        self.direction = start_direction
+        self.direction: Direction = start_direction

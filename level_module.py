@@ -108,7 +108,6 @@ class Level:
         print(self.transitions)
         print(set(map(hash, self.rooms)))
 
-
     def _create_node(self, centre_room: Room):
         self.expand_iterations -= 1
         self.rooms[centre_room.id] = centre_room
