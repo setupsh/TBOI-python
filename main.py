@@ -128,6 +128,7 @@ class GameObserver:
                         box_cast._pos_y += player._size_x
                 if GameObserver.math_collide(block, box_cast):
                     if type(block) == Door and gamemap.current_room.is_cleared:
+                        block: Door
                         gamemap.goto_next_room(block.direction)
                         gamemap.teleport_player_to_door(block.direction)
                     return True

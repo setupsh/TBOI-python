@@ -81,20 +81,20 @@ class Room:
             i.draw()
         for i in self.blocks:
             i.draw()
-        self.player.draw()
         self.particles.draw()
+        self.player.draw()
         self.projectiles.draw()
         self.enemies.draw()
 
 class Level:
     baseroom: Room
     rooms: dict[int, Room]
-    transitions: dict[str, int] = {}
+    transitions: dict[str, int] = {} # "roomhash-direction" : next_room_hash
 
-    def _load_room(self, room_id: int):
-        return rooms_list[room_id]
+    def _load_room_layout(self, layout_id: int):
+        return rooms_list[layout_id]
     
-    def _load_random_room(self):
+    def _load_random_room_layout(self):
         return random.choice(rooms_list)
 
     def __init__(self, expand_iterations: int) -> None:
@@ -103,7 +103,7 @@ class Level:
 
     def generate(self):
         self.rooms = {}
-        self.baseroom = Room(self._load_room(0))
+        self.baseroom = Room(self._load_room_layout(0))
         self._create_node(self.baseroom)
         print(self.transitions)
         print(set(map(hash, self.rooms)))
@@ -111,7 +111,7 @@ class Level:
     def _create_node(self, centre_room: Room):
         self.expand_iterations -= 1
         self.rooms[centre_room.id] = centre_room
-        for door in centre_room.get_blocks_of_type(Door): 
+        for door in centre_room.get_blocks_of_type(Door):
             door: Door
             neighbour_room = self._find_neighbour_room(centre_room, door)
             hub_key = f"{centre_room.id}-{door.direction}"
@@ -121,19 +121,19 @@ class Level:
             if neighbour_key not in self.transitions:
                 self.transitions[neighbour_key] = centre_room.id
             if self.expand_iterations > 0:
-                #self._create_node(neighbour_room)
                 self.expand_iterations -= 1
                 self.rooms[neighbour_room.id] = neighbour_room
+                #self._create_node(neighbour_room)
 
     def _find_neighbour_room(self, centre_room: Room, door_in: Door) -> Room:
-        new_room: Room = Room(self._load_random_room())
+        new_room: Room = Room(self._load_random_room_layout())
         has_door_out: bool = False
         for door in new_room.get_blocks_of_type(Door):
             door: Door
             if door.direction == door_in.alternate_direction:
                 has_door_out = True
                 break
-        if new_room.layout == centre_room.layout or not has_door_out:
+        if not has_door_out or new_room.layout == centre_room.layout:
             new_room = self._find_neighbour_room(centre_room, door_in)
         return new_room
 
@@ -150,4 +150,4 @@ class Level:
            print(f"Got the key. Next level will be {self.transitions[key]}")
            return self.get_room(self.transitions[key])
         print("Gotn't key.")
-        return current_room # self.baseroom
+        return current_room
