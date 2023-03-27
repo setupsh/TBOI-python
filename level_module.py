@@ -5,14 +5,14 @@ from GameObj_module import *
 assets_path = os.path.dirname(__file__) + '\Assets\Levels\\'
 extension = '.txt'
 
-rooms_list = []
+rooms_layouts = []
 
 def load_room_from_file(filename: str):
     file = open(assets_path + filename, 'r')
     return file.readlines()
 
-for i in os.listdir(assets_path):
-    rooms_list.append(load_room_from_file(i))
+for f in os.listdir(assets_path):
+    rooms_layouts.append(load_room_from_file(f))
 
 class Room:
     CHAR_EMPTY = ' '
@@ -70,6 +70,10 @@ class Room:
                 result.append(block)
         return result
 
+    def replace_block(self, old: Block, new: Block):
+        self.blocks.append(new)
+        self.blocks.remove(old)
+
     def update(self):
         self.player.update()
         self.particles.update()
@@ -89,13 +93,13 @@ class Room:
 class Level:
     baseroom: Room
     rooms: dict[int, Room]
-    transitions: dict[str, int] = {} # "roomhash-direction" : next_room_hash
+    transitions: dict[str, int] = {}
 
     def _load_room_layout(self, layout_id: int):
-        return rooms_list[layout_id]
+        return rooms_layouts[layout_id]
     
     def _load_random_room_layout(self):
-        return random.choice(rooms_list)
+        return random.choice(rooms_layouts)
 
     def __init__(self, expand_iterations: int) -> None:
         self.expand_iterations = expand_iterations
@@ -105,35 +109,48 @@ class Level:
         self.rooms = {}
         self.baseroom = Room(self._load_room_layout(0))
         self._create_node(self.baseroom)
-        print(self.transitions)
         print(set(map(hash, self.rooms)))
 
     def _create_node(self, centre_room: Room):
-        self.expand_iterations -= 1
         self.rooms[centre_room.id] = centre_room
-        for door in centre_room.get_blocks_of_type(Door):
-            door: Door
-            neighbour_room = self._find_neighbour_room(centre_room, door)
-            hub_key = f"{centre_room.id}-{door.direction}"
-            neighbour_key = f"{neighbour_room.id}-{door.alternate_direction}"
-            if hub_key not in self.transitions:
-                self.transitions[hub_key] = neighbour_room.id
-            if neighbour_key not in self.transitions:
-                self.transitions[neighbour_key] = centre_room.id
-            if self.expand_iterations > 0:
-                self.expand_iterations -= 1
-                self.rooms[neighbour_room.id] = neighbour_room
-                #self._create_node(neighbour_room)
+        if self.expand_iterations > 0:
+            neighbour_rooms: List[Room] = []
+            for door in centre_room.get_blocks_of_type(Door):
+                door: Door
+                neighbour_room = self._find_neighbour_room(centre_room, door)
+                hub_key = f"{centre_room.id}-{door.direction}"
+                neighbour_key = f"{neighbour_room.id}-{door.alternate_direction}"
+                if hub_key not in self.transitions:
+                    self.transitions[hub_key] = neighbour_room.id
+                if neighbour_key not in self.transitions:
+                    self.transitions[neighbour_key] = centre_room.id
+                neighbour_rooms.append(neighbour_room)
+            self._create_nodes(neighbour_rooms)
+
+    def _create_nodes(self, rooms: List[Room]):
+        #alt способ - создавать узлы для всех self.rooms по ходу всех итераций
+        #while self.expand_iterations > 0:
+        #    self.expand_iterations -= 1
+        #    for id, room in self.rooms.items():
+        #        self._create_node(room)
+
+        self.expand_iterations -= 1
+        for room in rooms:
+            self._create_node(room)
+        print(f"{set(map(hash, rooms))}: pack created. {self.expand_iterations} iterations last.")
 
     def _find_neighbour_room(self, centre_room: Room, door_in: Door) -> Room:
         new_room: Room = Room(self._load_random_room_layout())
+        if new_room.layout == rooms_layouts[0] or new_room.layout == centre_room.layout:
+            new_room = self._find_neighbour_room(centre_room, door_in)
         has_door_out: bool = False
         for door in new_room.get_blocks_of_type(Door):
             door: Door
             if door.direction == door_in.alternate_direction:
                 has_door_out = True
-                break
-        if not has_door_out or new_room.layout == centre_room.layout:
+            elif self.expand_iterations < 2:
+                new_room.replace_block(door, Wall((door._pos_x, door._pos_y)))
+        if not has_door_out:
             new_room = self._find_neighbour_room(centre_room, door_in)
         return new_room
 

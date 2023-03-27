@@ -34,7 +34,7 @@ class GameMap():
     def projectiles(self): return self.current_room.projectiles
 
     def __init__(self) -> None:
-        self.current_level = Level(expand_iterations=5)
+        self.current_level = Level(expand_iterations=2)
         self.current_room = self.current_level.get_room(0)
 
     def goto_next_room(self, direction: Direction):
@@ -147,7 +147,7 @@ class GameUi:
         self.gameover_canvas.extend_el([self._gameover_title])
         self.game_canvas.extend_el([self._game_life_label])
     def update(self):
-        self._game_life_label.set_label(f'{gamemap.player.health}')
+        self._game_life_label.set_label(f'{gamemap.player.health} {gamemap.current_room.id}')
 
     def draw_game(self):
         self.game_canvas.draw()
