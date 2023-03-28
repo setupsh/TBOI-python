@@ -109,39 +109,40 @@ class Level:
         self.rooms = {}
         self.baseroom = Room(self._load_room_layout(0))
         self._create_node(self.baseroom)
-        print(set(map(hash, self.rooms)))
+        self._expand(self._get_neighbour_rooms(self.baseroom))
+        print(f"Map generated. Total: {set(map(hash, self.rooms))}. Count: {len(self.rooms)}")
 
-    def _create_node(self, centre_room: Room):
-        self.rooms[centre_room.id] = centre_room
-        if self.expand_iterations > 0:
-            neighbour_rooms: List[Room] = []
-            for door in centre_room.get_blocks_of_type(Door):
-                door: Door
-                neighbour_room = self._find_neighbour_room(centre_room, door)
-                hub_key = f"{centre_room.id}-{door.direction}"
-                neighbour_key = f"{neighbour_room.id}-{door.alternate_direction}"
-                if hub_key not in self.transitions:
-                    self.transitions[hub_key] = neighbour_room.id
-                if neighbour_key not in self.transitions:
-                    self.transitions[neighbour_key] = centre_room.id
-                neighbour_rooms.append(neighbour_room)
-            self._create_nodes(neighbour_rooms)
+    def _create_node(self, room: Room):
+        if room not in self.rooms:
+            self.rooms[room.id] = room
 
-    def _create_nodes(self, rooms: List[Room]):
-        #alt способ - создавать узлы для всех self.rooms по ходу всех итераций
-        #while self.expand_iterations > 0:
-        #    self.expand_iterations -= 1
-        #    for id, room in self.rooms.items():
-        #        self._create_node(room)
-
+    def _expand(self, rooms: Set[Room]):
         self.expand_iterations -= 1
+        new_rooms: Set[Room] = set()
         for room in rooms:
             self._create_node(room)
-        print(f"{set(map(hash, rooms))}: pack created. {self.expand_iterations} iterations last.")
+            new_rooms.update(self._get_neighbour_rooms(room))
+        if self.expand_iterations > 0:
+            print(f"{self.expand_iterations}: {len(new_rooms)}")
+            self._expand(new_rooms)
+
+    def _get_neighbour_rooms(self, centre_room: Room) -> Set[Room]:
+        neighbour_rooms: Set[Room] = set()
+        for door in centre_room.get_blocks_of_type(Door):
+            door: Door
+            neighbour_room = self._find_neighbour_room(centre_room, door)
+            hub_key = f"{centre_room.id}-{door.direction}"
+            neighbour_key = f"{neighbour_room.id}-{door.alternate_direction}"
+            if hub_key not in self.transitions:
+                self.transitions[hub_key] = neighbour_room.id
+            if neighbour_key not in self.transitions:
+                self.transitions[neighbour_key] = centre_room.id
+            neighbour_rooms.add(neighbour_room)
+        return neighbour_rooms
 
     def _find_neighbour_room(self, centre_room: Room, door_in: Door) -> Room:
         new_room: Room = Room(self._load_random_room_layout())
-        if new_room.layout == rooms_layouts[0] or new_room.layout == centre_room.layout:
+        if new_room.layout == centre_room.layout:
             new_room = self._find_neighbour_room(centre_room, door_in)
         has_door_out: bool = False
         for door in new_room.get_blocks_of_type(Door):
