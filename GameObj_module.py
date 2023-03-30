@@ -183,8 +183,8 @@ class Projectiles:
 
 
 class Player(GameObjSprites):
-    health: int = 10
-    max_health: int = 3
+    health: int = 5
+    max_health: int = 5
     is_dead: bool = False 
     in_invicible: bool = False
     invivible_timer: float = 1
@@ -272,6 +272,26 @@ class Player(GameObjSprites):
     def dead(self):
         self.is_dead = True
         
+    def try_shoot(self, direction: Direction, projectiles:Projectiles):
+        if self._can_shoot:
+            projectiles.append_projectile(Projectile([self._pos_x + self._size_x * 0.5 - self.bullet_size * 0.5 , self._pos_y + self._size_y * 0.5 - self.bullet_size * 0.5], [self.bullet_size,self.bullet_size], sprite=Sprites.bullet, speed=self.bullet_speed, lifetime=self.bullet_lifetime, direction=direction, shoot_player=True))
+            self._can_shoot = False
+            self._cooldown_timer = self.shoot_cooldown
+    
+    def heal(self, amount: int):
+        self.health += amount
+        if self.health > self.max_health:
+            self.health = self.max_health
+
+    def set_heatlh(self, amount: int):
+        self.health = amount if self.health < self.max_health else self.max_health
+
+    def adjust_bullet(self, cooldown: float = 1, lifetime: float = 1, speed: int = 1, size: int = 1):
+        self.shoot_cooldown *= cooldown if cooldown > 0 else 1
+        self.bullet_lifetime *= lifetime if lifetime > 0 else 1
+        self.bullet_speed *= speed if speed > 0 else 1
+        self.bullet_size *= size if size > 0 else 1
+
     def update(self):
         self._pos_x += ((self.right_acceleration) ** 0.5) * self._speed
         self._pos_x -= ((self.left_acceleration) ** 0.5) * self._speed
@@ -287,16 +307,8 @@ class Player(GameObjSprites):
                 self.in_invicible = False
                 self.invivible_timer = self.invicible_timer_comeback
 
-        # TODO куллдаун неузвимовсти (аналогично верхнему условия)
-
     def draw(self):
         super().draw()
-
-    def try_shoot(self, direction: Direction, projectiles:Projectiles):
-        if self._can_shoot:
-            projectiles.append_projectile(Projectile([self._pos_x + self._size_x * 0.5 - self.bullet_size * 0.5 , self._pos_y + self._size_y * 0.5 - self.bullet_size * 0.5], [self.bullet_size,self.bullet_size], sprite=Sprites.bullet, speed=self.bullet_speed, lifetime=self.bullet_lifetime, direction=direction, shoot_player=True))
-            self._can_shoot = False
-            self._cooldown_timer = self.shoot_cooldown
 
 
 class Enemy(GameObjSprites):
@@ -473,24 +485,24 @@ class Enemies():
             i.draw()
 
 class Block(GameObjSprites):
-    defualt_sprite: pygame.image = None
+    default_sprite: pygame.image = None
     can_collide: bool = True
     def __init__(self, start_pos: tuple[int, int], sprite: pygame.image):
         super().__init__(start_pos, [48,48], sprite)
 
 class Wall(Block):
-    defualt_sprite: pygame.image = Sprites.block
+    default_sprite: pygame.image = Sprites.block
     def __init__(self, start_pos: tuple[int, int]):
-        super().__init__(start_pos, self.defualt_sprite)
+        super().__init__(start_pos, self.default_sprite)
 
 class Floor(Block):
-    defualt_sprite: pygame.image = Sprites.floor
+    default_sprite: pygame.image = Sprites.floor
     can_collide = False
     def __init__(self, start_pos: tuple[int, int]):
-        super().__init__(start_pos, self.defualt_sprite)
+        super().__init__(start_pos, self.default_sprite)
 
 class Door(Block):
-    defualt_sprite: pygame.image = Sprites.door
+    default_sprite: pygame.image = Sprites.door
     
     @property
     def alternate_direction(self) -> Direction:
@@ -502,5 +514,48 @@ class Door(Block):
         return Direction.Up
 
     def __init__(self, start_pos: tuple[int, int], start_direction: Direction):
-        super().__init__(start_pos, self.defualt_sprite)
+        super().__init__(start_pos, self.default_sprite)
         self.direction: Direction = start_direction
+
+class Buff(GameObjSprites):
+    default_sprite: pygame.image = None
+
+    def __init__(self, start_pos: tuple[int, int], sprite: pygame.image, target: Player):
+        super().__init__(start_pos, [48,48], sprite)
+        self.target = target
+
+    def apply(self):
+        pass
+
+class Medkit(Buff):
+    default_sprite: pygame.image = Sprites.bullet
+
+    def __init__(self, start_pos: tuple[int, int], target: Player):
+        super().__init__(start_pos, self.default_sprite, target)
+
+    def apply(self):
+        self.target.heal(1)
+
+class MegaBoom(Buff):
+    default_sprite: pygame.image = Sprites.death_skull
+
+    def __init__(self, start_pos: tuple[int, int], target: Player):
+        super().__init__(start_pos, self.default_sprite, target)
+
+    def apply(self):
+        self.target.adjust_bullet(cooldown=0.25, lifetime=2, speed=2, size=3)
+
+class Buffs:
+    def __init__(self) -> None:
+        self.buffs_list: List[Buff] = []               
+
+    def remove_buff(self, buff: Buff):
+        if buff in self.buffs_list:
+            self.buffs_list.remove(buff)
+    
+    def append_buff(self, buff: Buff):
+        self.buffs_list.append(buff)
+    
+    def draw(self):
+        for i in self.buffs_list:
+            i.draw()

@@ -18,9 +18,12 @@ class Room:
     CHAR_EMPTY = ' '
     CHAR_FULL = 'X'
     CHAR_DOOR = 'D'
+    CHAR_BUFF = 'B'
     CHAR_PSYCHO = 'P'
     CHAR_CHASER = 'C'
     CHAR_SHOOTER = 'S'
+
+    BUFF_TYPES = (None, Medkit, MegaBoom)
 
     player = Player(start_pos=(scr_width * 0.5 - 24, scr_height * 0.5 - 24 ), start_size=(48,48), sprite=Sprites.player)
     
@@ -32,6 +35,7 @@ class Room:
         self.projectiles = Projectiles()
         self.particles = Particles()
         self.enemies = Enemies()
+        self.buffs = Buffs()
         self.generate()
 
     def generate(self):
@@ -47,6 +51,10 @@ class Room:
                     self.enemies.add(Chaser((x, y), (48,48), Sprites.hard_enemy, self.player))
                 elif c == self.CHAR_PSYCHO:
                     self.enemies.add(PsychoMover((x,y), (48,48), Sprites.easy_enemy))
+                elif c == self.CHAR_BUFF:
+                    buff = random.choice(self.BUFF_TYPES)
+                    if buff:
+                        self.buffs.append_buff(buff((x,y), self.player))
                 elif c == self.CHAR_DOOR:
                     start_dir: Direction
                     if i == 0:
@@ -89,6 +97,7 @@ class Room:
         self.player.draw()
         self.projectiles.draw()
         self.enemies.draw()
+        self.buffs.draw()
 
 class Level:
     baseroom: Room

@@ -32,6 +32,9 @@ class GameMap():
 
     @property 
     def projectiles(self): return self.current_room.projectiles
+    
+    @property 
+    def buffs(self): return self.current_room.buffs
 
     def __init__(self) -> None:
         self.current_level = Level(expand_iterations=2)
@@ -95,27 +98,16 @@ class GameObserver:
     
     def math_collide(GO1, GO2):
         return (GO1._pos_x + GO1._size_x >= GO2._pos_x) and (GO1._pos_x < GO2._pos_x + GO2._size_x) and (GO1._pos_y + GO1._size_y >= GO2._pos_y) and (GO1._pos_y < GO2._pos_y + GO2._size_y)    
-
-    def check_projectiles(player: Player, enemies: Enemies, projectiles: Projectiles):
-        for projectile in projectiles.projectiles_list:
-            if projectile.shoot_player:
-                for enemy in enemies.enemy_list:
-                    if GameObserver.math_collide(enemy, projectile):
-                        projectiles.remove_projectile(projectile)
-                        enemy.get_damage(1)
-            else:               
-                if GameObserver.math_collide(player, projectile):
-                    projectiles.remove_projectile(projectile)
-                    player.get_damage(1)        
-
+    
     def enemy_is_killed(enemies: Enemies, particles: Particles):
         for enemy in enemies.enemy_list:
             if enemy.is_dead:
                 particles.append_particle(Skull ([enemy._pos_x, enemy._pos_y], [50,50]))
 
-    def check_block_collision(gamemap: GameMap, player: Player, move_direction: Direction):
+    @classmethod
+    def check_block_collision(cls, gamemap: GameMap, player: Player, move_direction: Direction):
         for block in gamemap.current_room.blocks:
-            if block.can_collide and GameObserver.math_collide(block, player):
+            if block.can_collide and cls.math_collide(block, player):
                 box_cast = GameObject((player._pos_x + player._size_x * 0.5, player._pos_y + player._size_y * 0.5), (8, 8), Colors.black)
                 match move_direction:
                     case Direction.Left:
@@ -126,13 +118,33 @@ class GameObserver:
                         box_cast._pos_y -= player._size_x
                     case Direction.Down:
                         box_cast._pos_y += player._size_x
-                if GameObserver.math_collide(block, box_cast):
-                    if type(block) == Door: #and gamemap.current_room.is_cleared:
+                if cls.math_collide(block, box_cast):
+                    if type(block) == Door and gamemap.current_room.is_cleared:
                         block: Door
                         gamemap.goto_next_room(block.direction)
                         gamemap.teleport_player_to_door(block.direction)
                     return True
         return False                        
+
+    @classmethod
+    def check_projectile_collision(cls, gamemap: GameMap):
+        for projectile in gamemap.projectiles.projectiles_list:
+            if projectile.shoot_player:
+                for enemy in gamemap.enemies.enemy_list:
+                    if cls.math_collide(enemy, projectile):
+                        gamemap.projectiles.remove_projectile(projectile)
+                        enemy.get_damage(1)
+            else:               
+                if cls.math_collide(gamemap.player, projectile):
+                    gamemap.projectiles.remove_projectile(projectile)
+                    gamemap.player.get_damage(1) 
+    
+    @classmethod
+    def check_buff_collision(cls, gamemap: GameMap):
+        for buff in gamemap.buffs.buffs_list:
+            if cls.math_collide(buff, gamemap.player):
+                gamemap.buffs.remove_buff(buff)
+                buff.apply()
 
 class GameUi:
     _labelFont = pygame.font.SysFont('Arial', 18)
@@ -146,8 +158,9 @@ class GameUi:
     def __init__(self) -> None:
         self.gameover_canvas.extend_el([self._gameover_title])
         self.game_canvas.extend_el([self._game_life_label])
+
     def update(self):
-        self._game_life_label.set_label(f'{gamemap.player.health} {gamemap.current_room.id}')
+        self._game_life_label.set_label(f'Health: {gamemap.player.health}')
 
     def draw_game(self):
         self.game_canvas.draw()
@@ -218,7 +231,8 @@ def game_loop():
     gamemap.draw()
     gameui.draw_game()
 
-    GameObserver.check_projectiles(gamemap.player, gamemap.enemies, gamemap.projectiles)
+    GameObserver.check_projectile_collision(gamemap)
+    GameObserver.check_buff_collision(gamemap)
     GameObserver.enemy_is_killed(gamemap.enemies, gamemap.particles)
     if gamemap.player.is_dead:
         GameObserver.game_is_over = True
