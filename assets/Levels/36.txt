@@ -1,11 +1,11 @@
-XXXXXXXXXDXXXXXXXXX                    
+XXXXXXXXXDXXXXXXXXX
 X_________________X
 X_________________X
 X_________________X
+XS_______________SX
+XBS_____________SBX
+XS_______________SX
 X_________________X
 X_________________X
 X_________________X
-X_________________X
-X_________________X
-X_________________X
-XXXXXXXXXXXXXXXXXXX
+XXXXXXXXXDXXXXXXXXX
