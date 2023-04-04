@@ -17,5 +17,8 @@ class Sprites:
     bullet = load_sprite('\\bullet.png')
     death_skull = load_sprite('\\dead.png')
     door = load_sprite('\\door.png')
+    medkit = load_sprite('\\medkit.png')
+    RPG7 = load_sprite('\\RPG.png')
+    fun_ghost = load_sprite('\\fun_ghost.png')
 class BackGrounds:
     pass

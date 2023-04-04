@@ -1,6 +1,6 @@
 import pygame
 import colorlib as Colors
-from typing import List, Tuple
+from typing import List, Tuple, Set
 from screen_module import *
 from enum import Enum
 from time_module import Time
@@ -14,7 +14,6 @@ class Direction(Enum):
     Down = 1
     Right = 2
     Left = 3
-
 
 class GameObject:   
     _pos_x: int = 0
@@ -86,9 +85,8 @@ class Skull(Particle):
         return super().update()
 
 class Particles:
-    particle_list: List[Particle] = []
-    def __init__(self) -> None:
-        pass                     
+    def __init__(self) -> None:                     
+        self.particle_list: List[Particle] = []
 
     def remove_particle(self, particle: Particle):
         self.particle_list.remove(particle)
@@ -160,13 +158,13 @@ class CustomProjectile(Projectile):
 
 
 class Projectiles:
-    projectiles_list: List[Projectile] = []
     
-    def __init__(self) -> None:
-        pass                     
+    def __init__(self) -> None:                     
+        self.projectiles_list: List[Projectile] = []
 
     def remove_projectile(self, projectile: Projectile):
-        self.projectiles_list.remove(projectile)
+        if projectile in self.projectiles_list:
+            self.projectiles_list.remove(projectile)   
     
     def append_projectile(self, projectile: Projectile):
         self.projectiles_list.append(projectile)
@@ -184,8 +182,8 @@ class Projectiles:
 
 
 class Player(GameObjSprites):
-    health: int = 10
-    max_health: int = 3
+    health: int = 5
+    max_health: int = 5
     is_dead: bool = False 
     in_invicible: bool = False
     invivible_timer: float = 1
@@ -200,6 +198,7 @@ class Player(GameObjSprites):
     bullet_lifetime: float = 0.3
     bullet_speed: int = 500
     bullet_size: int = 25
+    bullet_percing: bool = False
 
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image):
         super().__init__(start_pos, start_size, sprite)
@@ -251,6 +250,22 @@ class Player(GameObjSprites):
 
     def dead(self):
         self.is_dead = True
+
+    def heal(self, amount):
+        self.health += amount
+        if self.health > self.max_health:
+            self.health = self.max_health
+
+    def set_hp(self, amount):
+        self.health = amount
+        if self.health > self.max_health:
+            self.health = self.max_health
+
+    def bullet_change(self, firerate: int = 1, size: int = 1, range: int = 1, shootspeed: int = 1):
+        self.shoot_cooldown *= firerate if firerate > 0 else 1
+        self.bullet_size *= size if size > 0 else 1
+        self.bullet_lifetime *= range if range > 0 else 1
+        self.bullet_speed *= shootspeed if shootspeed > 0 else 1
         
     def update(self):
         self._pos_x += ((self.right_acceleration) ** 0.5) * self._speed
@@ -351,7 +366,8 @@ class PsychoMover(Enemy):
     speed: float = 1
     road_to_the_dream: int = 300
 
-    def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image):
+    def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image, target_to_beat: GameObject):
+        self.target_to_beat = target_to_beat
         super().__init__(start_pos, start_size, sprite)
         self.set_target(self.get_random_point())
 
@@ -366,7 +382,10 @@ class PsychoMover(Enemy):
             if self.get_distance_to(self.target) > 30:
                 self.move()
             else:
-                self.set_target(self.get_random_point())  
+                self.set_target(self.get_random_point()) 
+                   
+            if self.get_distance_to(self.target_to_beat) < 30:
+                self.attack(self.target_to_beat)
 
 class Chaser(Enemy):
     health: int = 3
@@ -430,10 +449,8 @@ class Shooter(Enemy):
                     self.timer = self.comeback_time
 
 class Enemies():
-    enemy_list: List[Enemy] = []
-
     def __init__(self) -> None:
-        pass
+        self.enemy_list: List[Enemy] = []
     def add(self, enemy: Enemy):
         self.enemy_list.append(enemy)  
 
@@ -472,10 +489,75 @@ class Floor(Block):
 
 class Door(Block):
     defualt_sprite: pygame.image = Sprites.door
-    direction: Direction = Direction.Up
+
+    @property
+    def alternative_direction(self):
+        match self.direction:
+            case Direction.Up: return Direction.Down 
+            case Direction.Down: return Direction.Up 
+            case Direction.Right: return Direction.Left 
+            case Direction.Left: return Direction.Right
+        return Direction.Up  
+       
     def __init__(self, start_pos: tuple[int, int], start_direction: Direction):
         super().__init__(start_pos, self.defualt_sprite)
         self.direction = start_direction
+
+class Buff(GameObjSprites):
+    defualt_sprite: pygame.image = None
+    def __init__(self, start_pos: tuple[int, int], sprite: pygame.image, target: Player):
+        super().__init__(start_pos, [48,48], sprite) 
+        self.target = target
+
+    def apply():
+        pass
+
+class Buffs():
+    def __init__(self) -> None:
+        self.buff_list: List[Buff] = []
+
+    def remove_projectile(self, buff: Buff):
+        if buff in self.buff_list:
+            self.buff_list.remove(buff)   
+    
+    def append_projectile(self, buff: Buff):
+        self.buff_list.append(buff)
+
+    def draw(self):
+        for i in self.buff_list:
+            i.draw()
+
+class MedKit(Buff):
+    defualt_sprite: pygame.image = Sprites.medkit
+    def __init__(self, start_pos: tuple[int, int], target: Player):
+        super().__init__(start_pos, self.defualt_sprite, target)
+
+    def apply(self):
+        self.target.heal(3)
+
+class RPG7(Buff):
+    defualt_sprite: pygame.image = Sprites.RPG7
+    def __init__(self, start_pos: tuple[int, int], target: Player):
+        super().__init__(start_pos, self.defualt_sprite, target)
+
+    def apply(self):
+        self.target.bullet_change(firerate=0.7, size=1.5)
+        self.target.bullet_percing = True
+
+class FunGhost(Buff):
+    defualt_sprite: pygame.image = Sprites.fun_ghost
+    def __init__(self, start_pos: tuple[int, int], target: Player):
+        super().__init__(start_pos, self.defualt_sprite, target)
+
+    def apply(self):
+        self.target._speed += 0.5    
+
+
+
+
+
+
+
 
     
         

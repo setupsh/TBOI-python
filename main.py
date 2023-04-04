@@ -13,14 +13,13 @@ from GUI_module import GuiLabel, Canvas, HorizontalAlignment, VerticalAlignment,
 from sounds_module import init as mixerinit, Sound, Sounds, Music, Tracks
 from sprite_module import Sprites, BackGrounds
 import level_module
-from level_module import Room
+from level_module import Room, Level
 
 pygame.init()
 init_screen()
 mixerinit()
 
 class GameMap():
-    current_room: Room
 
     @property
     def player(self): return self.current_room.player
@@ -30,18 +29,15 @@ class GameMap():
     def projectiles(self): return self.current_room.projectiles
     @property
     def particles(self): return self.current_room.particles
+    @property
+    def buffs(self): return self.current_room.buffs
 
     def __init__(self) -> None:
-        self.current_room = Room(layout=self.load_map(0))
-
-    def load_map(self, map_id: int):
-        return level_module.levels_list[map_id]
-
-    def load_random_map(self):
-        return level_module.get_random_level()
+        self.current_level = Level(iterartion=2)
+        self.current_room = self.current_level.get_room(0)
     
-    def get_next_room(self):
-        self.current_room = Room(self.load_random_map())
+    def go_to_next_room(self, direction: Direction):
+        self.current_room = self.current_level.get_next_room(self.current_room, direction)
 
     def player_teleport_door(self,  direction: Direction):
         match direction:      
@@ -100,22 +96,32 @@ class GameObserver:
         if GameObserver.math_collide(player, enemy):
             enemy.attack(player)
 
-    def check_projectiles(player: Player, enemies: Enemies, projectiles: Projectiles):
+    def check_projectiles(player: Player, enemies: Enemies, projectiles: Projectile):
         for projectile in projectiles.projectiles_list:
             if projectile.shoot_player:
                 for enemy in enemies.enemy_list:
                     if GameObserver.math_collide(enemy, projectile):
-                        projectiles.remove_projectile(projectile)
+                        if not player.bullet_percing:
+                            projectiles.remove_projectile(projectile)
                         enemy.get_damage(1)
             else:               
                 if GameObserver.math_collide(player, projectile):
                     projectiles.remove_projectile(projectile)
-                    player.get_damage(1)        
+                    player.get_damage(1) 
+            for block in gamemap.current_room.blocks:
+                if GameObserver.math_collide(block, projectile):
+                    projectiles.remove_projectile(projectile)              
 
     def enemy_is_killed(enemies: Enemies, particles: Particles):
         for enemy in enemies.enemy_list:
             if enemy.is_dead:
                 particles.append_particle(Skull ([enemy._pos_x, enemy._pos_y], [50,50]))
+
+    def buff_collide(buffs: Buffs, player: Player):
+        for buff in buffs.buff_list:
+            if GameObserver.math_collide(player, buff):
+                buff.apply()
+                buffs.buff_list.remove(buff)            
 
     def player_block_collide(gamemap: GameMap, player: Player, move_direction: Direction):
         for block in gamemap.current_room.blocks:
@@ -132,11 +138,11 @@ class GameObserver:
                         box_cast._pos_y += player._size_x
                 if GameObserver.math_collide(block, box_cast):
                     if type(block) == Door and gamemap.current_room.is_cleared:
-                        gamemap.get_next_room()
+                        gamemap.go_to_next_room(block.direction)
                         gamemap.player_teleport_door(block.direction)
                     return True
                 
-        return False                        
+        return False                       
 
 class GameUi:
     _labelFont = pygame.font.SysFont('Arial', 18)
@@ -224,6 +230,7 @@ def game_loop():
     
     GameObserver.check_projectiles(gamemap.player, gamemap.enemies, gamemap.projectiles)
     GameObserver.enemy_is_killed(gamemap.enemies, gamemap.particles)
+    GameObserver.buff_collide(gamemap.buffs, gamemap.player)
     if gamemap.player.is_dead:
         GameObserver.game_is_over = True
    #sssssss GameObserver.check_enemy_collision(player, enemy)
