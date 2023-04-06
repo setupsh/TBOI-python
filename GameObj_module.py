@@ -188,6 +188,7 @@ class Player(GameObjSprites):
     in_invicible: bool = False
     invivible_timer: float = 1
     invicible_timer_comeback = 1
+    lifes: int = 0
     # Movement
     _speed: float = 3.0
 
@@ -250,6 +251,10 @@ class Player(GameObjSprites):
 
     def dead(self):
         self.is_dead = True
+
+    def revive(self):
+        self.set_hp(3)
+        self.in_invicible = True    
 
     def heal(self, amount):
         self.health += amount
@@ -357,9 +362,13 @@ class Enemy(GameObjSprites):
         self.health = value
         self.check_death()
 
+    def kill(self):
+        self.is_dead = True
+        Vampirism.increase_kill_count()    
+
     def check_death(self):
         if self.health <= 0:
-            self.is_dead = True               
+            self.kill()              
 
 class PsychoMover(Enemy):
     health: int = 3
@@ -447,10 +456,11 @@ class Shooter(Enemy):
                 if self.timer <= 0:
                     self.in_cooldown = False
                     self.timer = self.comeback_time
-
 class Enemies():
+    
     def __init__(self) -> None:
         self.enemy_list: List[Enemy] = []
+
     def add(self, enemy: Enemy):
         self.enemy_list.append(enemy)  
 
@@ -550,7 +560,34 @@ class FunGhost(Buff):
         super().__init__(start_pos, self.defualt_sprite, target)
 
     def apply(self):
-        self.target._speed += 0.5    
+        self.target._speed += 0.5 
+
+class LIFEUP(Buff):
+    defualt_sprite: pygame.image = Sprites.player
+    def __init__(self, start_pos: tuple[int, int], target: Player):
+        super().__init__(start_pos, self.defualt_sprite, target)
+    def apply(self):
+        self.target.lifes += 1
+
+class Vampirism(Buff):
+    kill_counter: int = 0
+    is_active: bool = False
+    target: Player = None
+    defualt_sprite: pygame.image = Sprites.normal_enemy
+    def __init__(self, start_pos: tuple[int, int], target: Player):
+        super().__init__(start_pos, self.defualt_sprite, target)
+        Vampirism.target = target
+    def apply(self):
+        Vampirism.is_active = True
+    def heal(self):
+        self.target.heal(1)    
+    @classmethod
+    def increase_kill_count(cls):
+        if cls.is_active:
+            cls.kill_counter += 1
+            if cls.kill_counter >= 10:
+                cls.target.heal(1)
+
 
 
 

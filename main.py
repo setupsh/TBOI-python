@@ -232,8 +232,10 @@ def game_loop():
     GameObserver.enemy_is_killed(gamemap.enemies, gamemap.particles)
     GameObserver.buff_collide(gamemap.buffs, gamemap.player)
     if gamemap.player.is_dead:
-        GameObserver.game_is_over = True
-   #sssssss GameObserver.check_enemy_collision(player, enemy)
+        if gamemap.player.lifes > 0:
+            gamemap.player.revive()
+        else:    
+            GameObserver.game_is_over = True
 
 def game_over_loop():
     screen.fill(Colors.black)
