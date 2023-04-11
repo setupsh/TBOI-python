@@ -20,5 +20,7 @@ class Sprites:
     medkit = load_sprite('\\medkit.png')
     RPG7 = load_sprite('\\RPG.png')
     fun_ghost = load_sprite('\\fun_ghost.png')
+    LIFEUP = load_sprite('\\LIFEUP.png')
+    Vampirism = load_sprite('\\vampirism.png')
 class BackGrounds:
     pass

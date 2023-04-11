@@ -119,7 +119,7 @@ class GameObserver:
 
     def buff_collide(buffs: Buffs, player: Player):
         for buff in buffs.buff_list:
-            if GameObserver.math_collide(player, buff):
+            if GameObserver.math_collide(player, buff): 
                 buff.apply()
                 buffs.buff_list.remove(buff)            
 
@@ -152,12 +152,15 @@ class GameUi:
 
     _gameover_title: GuiLabel = GuiLabel ([scr_width/2,scr_height/2], 'Ты проиграл', Colors.white)
     _game_life_label: GuiLabel = GuiLabel([0,0], f'score ', Colors.white, horizontal = HorizontalAlignment.Left, vertical = VerticalAlignment.Top)
+    _active_buff_label: GuiLabel = GuiLabel([scr_width,0], f'', Colors.white, horizontal = HorizontalAlignment.Right, vertical = VerticalAlignment.Top)
 
     def __init__(self) -> None:
         self.gameover_canvas.extend_el([self._gameover_title])
-        self.game_canvas.extend_el([self._game_life_label])
+        self.game_canvas.extend_el([self._game_life_label, self._active_buff_label])
     def update(self):
         self._game_life_label.set_label(f'{gamemap.player.health}')
+        if gamemap.player.active_buff:
+            self._active_buff_label.set_label(f'{gamemap.player.active_buff.name}:{gamemap.player.active_buff.current_charges}')
 
     def draw_game(self):
         self.game_canvas.draw()
@@ -211,7 +214,10 @@ def game_loop():
         gamemap.player.try_shoot(Direction.Left, gamemap.projectiles)
 
     if (Inpunting.is_key_right_pressed):      
-        gamemap.player.try_shoot(Direction.Right, gamemap.projectiles) 
+        gamemap.player.try_shoot(Direction.Right, gamemap.projectiles)
+
+    if (Inpunting.is_key_space_pressed):
+        gamemap.player.active_buff.use()       
 
     if GameObserver.player_block_collide(gamemap, gamemap.player, Direction.Left):
         gamemap.player.left_acceleration = 0

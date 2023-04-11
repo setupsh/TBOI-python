@@ -189,6 +189,7 @@ class Player(GameObjSprites):
     invivible_timer: float = 1
     invicible_timer_comeback = 1
     lifes: int = 0
+    active_buff = None 
     # Movement
     _speed: float = 3.0
 
@@ -265,6 +266,9 @@ class Player(GameObjSprites):
         self.health = amount
         if self.health > self.max_health:
             self.health = self.max_health
+
+    def set_active_buff(self, active_buff):
+        self.active_buff: ActiveBuff = active_buff
 
     def bullet_change(self, firerate: int = 1, size: int = 1, range: int = 1, shootspeed: int = 1):
         self.shoot_cooldown *= firerate if firerate > 0 else 1
@@ -563,7 +567,7 @@ class FunGhost(Buff):
         self.target._speed += 0.5 
 
 class LIFEUP(Buff):
-    defualt_sprite: pygame.image = Sprites.player
+    defualt_sprite: pygame.image = Sprites.LIFEUP
     def __init__(self, start_pos: tuple[int, int], target: Player):
         super().__init__(start_pos, self.defualt_sprite, target)
     def apply(self):
@@ -573,7 +577,7 @@ class Vampirism(Buff):
     kill_counter: int = 0
     is_active: bool = False
     target: Player = None
-    defualt_sprite: pygame.image = Sprites.normal_enemy
+    defualt_sprite: pygame.image = Sprites.Vampirism
     def __init__(self, start_pos: tuple[int, int], target: Player):
         super().__init__(start_pos, self.defualt_sprite, target)
         Vampirism.target = target
@@ -587,6 +591,42 @@ class Vampirism(Buff):
             cls.kill_counter += 1
             if cls.kill_counter >= 10:
                 cls.target.heal(1)
+
+class ActiveBuff(Buff):
+    defualt_sprite: pygame.image = Sprites.door
+    name: str = 'Name'
+    needed_charges = int
+    current_charges = needed_charges
+    def __init__(self, start_pos: tuple[int, int], defualt_sprite: pygame.image, target: Player):
+        super().__init__(start_pos, self.defualt_sprite, target)
+
+    @classmethod
+    def use(cls):
+        pass
+
+    @classmethod
+    def charge(cls, amount):
+        cls.current_charges += amount
+        if cls.current_charges > cls.needed_charges:
+            cls.current_charges = cls.needed_charges
+
+class DeadDetonator(ActiveBuff):
+    defualt_sprite: pygame.image = Sprites.death_skull
+    name = 'DeadDetonator'
+    needed_charges = 4
+    current_charges = needed_charges
+    def __init__(self, start_pos: tuple[int, int], target: Player):
+        super().__init__(start_pos, self.defualt_sprite, target)
+        DeadDetonator.target = target
+    def apply(self):
+        DeadDetonator.target.set_active_buff(DeadDetonator)
+        DeadDetonator.charge(DeadDetonator.needed_charges)
+    @classmethod        
+    def use(cls):
+        if cls.current_charges >= cls.needed_charges:
+            cls.target.heal(1) 
+            cls.current_charges = 0  
+
 
 
 
