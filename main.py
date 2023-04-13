@@ -64,9 +64,10 @@ class DebugConsole():
     def __init__(self) -> None:
         pass
     def get_command(self):
-        command = input()
-        value = input()
-        self.execute_command(command, value)
+        command = input().split()
+        print(command)
+        #value = input()
+        #self.execute_command(command, value)
 
     def execute_command(self, command, value):
         if command == 'spawnbuff':
@@ -78,20 +79,14 @@ class DebugConsole():
             is_applied_1 = False
             is_applied_2 = False
 
-            if value == '1' and not is_applied_1:
-                gamemap.player.max_health = 999
-                gamemap.player.health = 999
-                is_applied_1 = True
-            else:
-                gamemap.player.max_health = Player.max_health
-                is_applied_1 = False
+            if value == '1':
+                is_applied_1 = not is_applied_1
+                gamemap.player.max_health = 999 if not is_applied_1 else Player.max_health
+                gamemap.player.health = gamemap.player.max_health
                 
-            if value == '2' and not is_applied_2:
-                gamemap.player.super_cheater_kill = True
-                is_applied_2 = True    
-            else:
-                gamemap.player.super_cheater_kill = False
-                is_applied_2 = False                 
+            if value == '2':
+                is_applied_2 = not is_applied_2            
+                gamemap.player.super_cheater_kill = is_applied_2
             
 debug_console = DebugConsole()
 
