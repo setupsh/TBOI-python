@@ -13,6 +13,7 @@ class Inpunting:
     is_key_a_pressed: bool = False
     is_key_d_pressed: bool = False
     is_key_space_pressed: bool = False
+    is_key_tilda_pressed: bool = False
 
 def get():
     for event in pygame.event.get():
@@ -52,7 +53,10 @@ def get():
                 Inpunting.is_key_esc_pressed = True
 
             if event.key == pygame.K_SPACE:
-                Inpunting.is_key_space_pressed = True    
+                Inpunting.is_key_space_pressed = True
+
+            if event.key == pygame.K_F3:
+                Inpunting.is_key_tilda_pressed = True        
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT:
@@ -89,4 +93,7 @@ def get():
                 Inpunting.is_key_esc_pressed = False
                 
             if event.key == pygame.K_SPACE:
-                Inpunting.is_key_space_pressed = False        
+                Inpunting.is_key_space_pressed = False
+
+            if event.key == pygame.K_F3:
+                Inpunting.is_key_tilda_pressed = False            

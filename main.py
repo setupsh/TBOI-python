@@ -37,9 +37,14 @@ class GameMap():
         self.current_room = self.current_level.get_room(0)
     
     def go_to_next_room(self, direction: Direction):
+        gamemap.current_room.discovered = True
         self.current_room = self.current_level.get_next_room(self.current_room, direction)
-
+        if self.player.super_cheater_kill:
+            self.enemies.kill_all()
+            
     def player_teleport_door(self,  direction: Direction):
+        if not gamemap.current_room.discovered and gamemap.player.active_buff:
+            gamemap.player.active_buff.charge(1)            
         match direction:      
             case Direction.Left:
                 self.player.set_position([scr_width - 97 , scr_height * 0.5 - self.player._size_x * 0.5])
@@ -53,7 +58,44 @@ class GameMap():
     def draw(self):
         self.current_room.draw()
     def update(self):
-        self.current_room.update()    
+        self.current_room.update()
+
+class DebugConsole():
+    def __init__(self) -> None:
+        pass
+    def get_command(self):
+        command = input()
+        value = input()
+        self.execute_command(command, value)
+
+    def execute_command(self, command, value):
+        if command == 'spawnbuff':
+            class_name = value
+            class_obj = globals()[class_name]
+            gamemap.buffs.buff_list.append(class_obj((gamemap.player._pos_x,gamemap.player._pos_y), gamemap.player))
+
+        elif command == 'debug':
+            is_applied_1 = False
+            is_applied_2 = False
+
+            if value == '1' and not is_applied_1:
+                gamemap.player.max_health = 999
+                gamemap.player.health = 999
+                is_applied_1 = True
+            else:
+                gamemap.player.max_health = Player.max_health
+                is_applied_1 = False
+                
+            if value == '2' and not is_applied_2:
+                gamemap.player.super_cheater_kill = True
+                is_applied_2 = True    
+            else:
+                gamemap.player.super_cheater_kill = False
+                is_applied_2 = False                 
+            
+debug_console = DebugConsole()
+
+                
 #Наблюдатель
 class GameObserver:
     secs: float = 0
@@ -217,7 +259,10 @@ def game_loop():
         gamemap.player.try_shoot(Direction.Right, gamemap.projectiles)
 
     if (Inpunting.is_key_space_pressed):
-        gamemap.player.active_buff.use()       
+        gamemap.player.active_buff.use()
+
+    if (Inpunting.is_key_tilda_pressed):
+        debug_console.get_command()           
 
     if GameObserver.player_block_collide(gamemap, gamemap.player, Direction.Left):
         gamemap.player.left_acceleration = 0

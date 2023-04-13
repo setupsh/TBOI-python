@@ -41,6 +41,7 @@ class Room():
         self.enemies = Enemies()
         self.buffs = Buffs()
         self.generate()
+        self.discovered = False
         
         
     def generate(self):
@@ -86,7 +87,6 @@ class Room():
                 result.append(block)
         return result        
                 
-
     def update(self):
         self.player.update()                
         self.projectiles.update()

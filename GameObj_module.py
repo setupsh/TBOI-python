@@ -189,7 +189,8 @@ class Player(GameObjSprites):
     invivible_timer: float = 1
     invicible_timer_comeback = 1
     lifes: int = 0
-    active_buff = None 
+    active_buff = None
+    super_cheater_kill = False 
     # Movement
     _speed: float = 3.0
 
@@ -433,7 +434,7 @@ class Shooter(Enemy):
     bullet_speed: int = 1
     bullet_size: int = 25
     shoot_trigger_distance: int = 400
-    in_cooldown: bool = False
+    in_cooldown: bool = True
 
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image, target: GameObject, projectiles: Projectiles):
         super().__init__(start_pos, start_size, sprite)
@@ -473,6 +474,10 @@ class Enemies():
 
     def destroy(self, enemy: Enemy):
         self.enemy_list.remove(enemy)
+
+    def kill_all(self):
+        for enemy in self.enemy_list:
+            enemy.is_dead = True    
 
     def update(self):
         for i in self.enemy_list:
@@ -625,7 +630,8 @@ class DeadDetonator(ActiveBuff):
     def use(cls):
         if cls.current_charges >= cls.needed_charges:
             cls.target.heal(1) 
-            cls.current_charges = 0  
+            cls.current_charges = 0 
+
 
 
 
