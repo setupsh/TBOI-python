@@ -58,7 +58,7 @@ class Room():
                 elif c == self.CHAR_PSYCHO:
                     self.enemies.add(PsychoMover((x,y), (48,48), Sprites.easy_enemy, self.player))
                 elif c == self.CHAR_BUFF:
-                    buff = random.choice((DeadDetonator, Vampirism, RPG7, MedKit, LIFEUP, FunGhost, None))
+                    buff = random.choice((Companion_Shooter, Orbital, DeadDetonator, Vampirism, RPG7, MedKit, LIFEUP, FunGhost, None))
                     if buff:
                         self.buffs.append_projectile(buff((x,y), self.player))        
                 elif c == self.CHAR_DOOR:

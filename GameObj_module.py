@@ -189,6 +189,7 @@ class Player(GameObjSprites):
     invivible_timer: float = 1
     invicible_timer_comeback = 1
     lifes: int = 0
+    companion = None
     active_buff = None
     super_cheater_kill = False 
     # Movement
@@ -205,6 +206,11 @@ class Player(GameObjSprites):
 
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image):
         super().__init__(start_pos, start_size, sprite)
+
+    def set_position(self, pos: tuple[int, int]):
+        if self.companion:
+            self.companion.set_position(pos)
+        return super().set_position(pos)    
             
     def move(self, direction: Direction):
         match direction:      
@@ -271,6 +277,9 @@ class Player(GameObjSprites):
     def set_active_buff(self, active_buff):
         self.active_buff: ActiveBuff = active_buff
 
+    def set_companion(self, companion):
+        self.companion: Companion = companion    
+
     def bullet_change(self, firerate: int = 1, size: int = 1, range: int = 1, shootspeed: int = 1):
         self.shoot_cooldown *= firerate if firerate > 0 else 1
         self.bullet_size *= size if size > 0 else 1
@@ -286,15 +295,20 @@ class Player(GameObjSprites):
             self._cooldown_timer -= Time.delta_time
             if self._cooldown_timer <= 0:
                 self._can_shoot = True
+
         if self.in_invicible:
             self.invivible_timer -= Time.delta_time
             if self.invivible_timer <= 0:
                 self.in_invicible = False
                 self.invivible_timer = self.invicible_timer_comeback
+        if self.companion:
+            self.companion.update()        
 
         # TODO куллдаун неузвимовсти (аналогично верхнему условия)
 
     def draw(self):
+        if self.companion:
+            self.companion.draw()
         super().draw()
 
     def try_shoot(self, direction: Direction, projectiles:Projectiles):
@@ -302,7 +316,8 @@ class Player(GameObjSprites):
             projectiles.append_projectile(Projectile([self._pos_x + self._size_x * 0.5 - self.bullet_size * 0.5 , self._pos_y + self._size_y * 0.5 - self.bullet_size * 0.5], [self.bullet_size,self.bullet_size], sprite=Sprites.bullet, speed=self.bullet_speed, lifetime=self.bullet_lifetime, direction=direction, shoot_player=True))
             self._can_shoot = False
             self._cooldown_timer = self.shoot_cooldown
-
+        if self.companion and self.companion.can_shoot:
+            self.companion.try_shoot(direction, projectiles)    
 
 class Enemy(GameObjSprites):
     health: int = 3
@@ -616,7 +631,7 @@ class ActiveBuff(Buff):
             cls.current_charges = cls.needed_charges
 
 class DeadDetonator(ActiveBuff):
-    defualt_sprite: pygame.image = Sprites.death_skull
+    defualt_sprite: pygame.image = Sprites.DeadDetonator
     name = 'DeadDetonator'
     needed_charges = 4
     current_charges = needed_charges
@@ -630,7 +645,100 @@ class DeadDetonator(ActiveBuff):
     def use(cls):
         if cls.current_charges >= cls.needed_charges:
             cls.target.heal(1) 
-            cls.current_charges = 0 
+            cls.current_charges = 0
+
+class Companion(Buff):
+    can_shoot: bool = False
+    def __init__(self, start_pos: tuple[int, int], sprite: pygame.image, target: Player):
+        self.target = target
+        super().__init__(start_pos, sprite , target)
+
+    def apply(self):
+        self.target.set_companion(Companion((self.target._pos_x, self.target._pos_y), self.target))
+
+    def set_target(self, new_target: GameObject):
+        if new_target:
+            self.target = new_target
+
+    def get_distance_to(self, target:GameObject):
+        magnitude = ((target._pos_x - self._pos_x) ** 2 + (target._pos_y - self._pos_y) ** 2) ** 0.5
+        return(magnitude)
+        
+    def get_direction_to(self, target:GameObject):
+        direction = (target._pos_x - self._pos_x, target._pos_y - self._pos_y)
+        return direction
+    
+    def move(self):
+        pass
+
+    def update(self):
+        pass        
+
+
+class Companion_Shooter(Companion):
+    defualt_sprite: pygame.image = Sprites.DeadDetonator
+    speed: float = 1
+
+    can_shoot: bool = True
+    cooldown_timer: float = 0.0
+    shoot_cooldown: float = 0.3
+    bullet_lifetime: float = 0.3
+    bullet_speed: int = 500
+    bullet_size: int = 25
+
+    def __init__(self, start_pos: tuple[int, int], target: Player):
+        super().__init__(start_pos, self.defualt_sprite, target)
+        self.target = target
+
+    def apply(self):
+        self.target.set_companion(Companion_Shooter((self.target._pos_x, self.target._pos_y), self.target))
+
+    def try_shoot(self, direction: Direction, projectiles:Projectiles):
+        if self.can_shoot:
+            projectiles.append_projectile(Projectile([self._pos_x + self._size_x * 0.5 - self._size_y * 0.5 , self._pos_y + self._size_y * 0.5 - self.bullet_size * 0.5], [self.bullet_size,self.bullet_size], sprite=Sprites.bullet, speed=self.bullet_speed, lifetime=self.bullet_lifetime, direction=direction, shoot_player=True))
+            self.can_shoot = False
+            self.cooldown_timer = self.shoot_cooldown    
+
+    def move(self):
+        direction = self.get_direction_to(self.target)
+        self._pos_x += direction[0] * self.speed * Time.delta_time
+        self._pos_y += direction[1] * self.speed * Time.delta_time
+
+    def update(self):
+        if self.get_distance_to(self.target) >= 40:
+            self.move()
+        if self.can_shoot == False:
+            self.cooldown_timer -= Time.delta_time
+            if self.cooldown_timer <= 0:
+                self.can_shoot = True
+
+class Orbital(Companion):
+    defualt_sprite: pygame.image = Sprites.bullet
+    x = -100
+    f = lambda x: (10000 - x * x) ** 0.5
+    timer = 0.01
+    def __init__(self, start_pos: tuple[int, int], target: Player):
+        super().__init__(start_pos, self.defualt_sprite, target)
+
+    def apply(self):
+        self.target.set_companion(Orbital((self.target._pos_x, self.target._pos_y), self.target))    
+
+    def move(self):
+        if self.x < 100:
+            self.x += 1
+            y = Orbital.f(self.x)
+            self.set_position((self.x + self.target._pos_x, y + self.target._pos_y))
+
+        #while self.x > -10:
+        #    self.x -= 0.1
+        #    y = Orbital.f(self.x)
+        #    self.set_position((self.x + self.target._pos_x, y + self.target._pos_y))
+
+    def update(self):
+        self.move()                
+
+    
+
 
 
 

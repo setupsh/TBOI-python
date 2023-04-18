@@ -42,7 +42,7 @@ class GameMap():
         if self.player.super_cheater_kill:
             self.enemies.kill_all()
             
-    def player_teleport_door(self,  direction: Direction):
+    def player_teleport_door(self, direction: Direction):
         if not gamemap.current_room.discovered and gamemap.player.active_buff:
             gamemap.player.active_buff.charge(1)            
         match direction:      
@@ -65,28 +65,35 @@ class DebugConsole():
         pass
     def get_command(self):
         command = input().split()
-        print(command)
         #value = input()
-        #self.execute_command(command, value)
+        self.execute_command(command)
 
-    def execute_command(self, command, value):
-        if command == 'spawnbuff':
-            class_name = value
-            class_obj = globals()[class_name]
-            gamemap.buffs.buff_list.append(class_obj((gamemap.player._pos_x,gamemap.player._pos_y), gamemap.player))
+    def execute_command(self, command):
+        if command.__len__() == 2:
+            if command[0] == 'spawnbuff':
+                class_name = command[1]
+                class_obj = globals()[class_name]
+                gamemap.buffs.buff_list.append(class_obj((gamemap.player._pos_x,gamemap.player._pos_y), gamemap.player))    
 
-        elif command == 'debug':
-            is_applied_1 = False
-            is_applied_2 = False
+            elif command[0] == 'debug':
+                is_applied_1 = False
+                is_applied_2 = False
 
-            if value == '1':
-                is_applied_1 = not is_applied_1
-                gamemap.player.max_health = 999 if not is_applied_1 else Player.max_health
-                gamemap.player.health = gamemap.player.max_health
-                
-            if value == '2':
-                is_applied_2 = not is_applied_2            
-                gamemap.player.super_cheater_kill = is_applied_2
+                if command[1] == '1':
+                    is_applied_1 = not is_applied_1
+                    gamemap.player.max_health = 999 if not is_applied_1 else Player.max_health
+                    gamemap.player.health = gamemap.player.max_health
+                    
+                if command[1] == '2':
+                    is_applied_2 = not is_applied_2            
+                    gamemap.player.super_cheater_kill = is_applied_2
+        elif command.__len__() == 4:
+            if command[0] == 'spawnbuff':
+                class_name = command[1]
+                class_obj = globals()[class_name]
+                x = int(command[2])
+                y = int(command[3])
+                gamemap.buffs.buff_list.append(class_obj((x,y), gamemap.player))            
             
 debug_console = DebugConsole()
 
@@ -190,7 +197,7 @@ class GameUi:
     _gameover_title: GuiLabel = GuiLabel ([scr_width/2,scr_height/2], 'Ты проиграл', Colors.white)
     _game_life_label: GuiLabel = GuiLabel([0,0], f'score ', Colors.white, horizontal = HorizontalAlignment.Left, vertical = VerticalAlignment.Top)
     _active_buff_label: GuiLabel = GuiLabel([scr_width,0], f'', Colors.white, horizontal = HorizontalAlignment.Right, vertical = VerticalAlignment.Top)
-
+    
     def __init__(self) -> None:
         self.gameover_canvas.extend_el([self._gameover_title])
         self.game_canvas.extend_el([self._game_life_label, self._active_buff_label])

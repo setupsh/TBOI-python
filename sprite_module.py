@@ -22,5 +22,6 @@ class Sprites:
     fun_ghost = load_sprite('\\fun_ghost.png')
     LIFEUP = load_sprite('\\LIFEUP.png')
     Vampirism = load_sprite('\\vampirism.png')
+    DeadDetonator = load_sprite('\\wizard.png')
 class BackGrounds:
     pass
