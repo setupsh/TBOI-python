@@ -714,9 +714,12 @@ class Companion_Shooter(Companion):
 
 class Orbital(Companion):
     defualt_sprite: pygame.image = Sprites.bullet
+
     x = -100
-    f = lambda x: (10000 - x * x) ** 0.5
-    timer = 0.01
+    r = x ** 2
+    f = lambda x: (Orbital.r - x ** 2) ** 0.5
+    down_up: bool = True
+
     def __init__(self, start_pos: tuple[int, int], target: Player):
         super().__init__(start_pos, self.defualt_sprite, target)
 
@@ -724,15 +727,18 @@ class Orbital(Companion):
         self.target.set_companion(Orbital((self.target._pos_x, self.target._pos_y), self.target))    
 
     def move(self):
-        if self.x < 100:
+        if self.down_up:
             self.x += 1
             y = Orbital.f(self.x)
             self.set_position((self.x + self.target._pos_x, y + self.target._pos_y))
-
-        #while self.x > -10:
-        #    self.x -= 0.1
-        #    y = Orbital.f(self.x)
-        #    self.set_position((self.x + self.target._pos_x, y + self.target._pos_y))
+            if self.x >= self.r ** 0.5:
+                self.down_up = False
+        else:
+            self.x -= 1
+            y = -Orbital.f(self.x)
+            self.set_position((self.x + self.target._pos_x, y + self.target._pos_y))
+            if self.x <= -self.r ** 0.5:
+                self.down_up = True
 
     def update(self):
         self.move()                
