@@ -743,6 +743,31 @@ class Orbital(Companion):
     def update(self):
         self.move()                
 
+class TheBoss(Enemy):
+    bullet_lifetime: float = 3
+    bullet_speed: int = 1
+    bullet_size: int = 25
+
+    def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image, target: Player, projectiles: Projectiles, enemies: Enemies):
+        self.target = target
+        self.projectiles = projectiles
+        self.enemies = enemies
+        super().__init__(start_pos, start_size, sprite)
+
+    def shoot_line(self):
+        for i in range(5):
+            self.projectiles.append_projectile(CustomProjectile([self._pos_x + self._size_x * 0.5 - self.bullet_size * 0.5 , self._pos_y + self._size_y * 0.5 - self.bullet_size * 0.5], [self.bullet_size,self.bullet_size], sprite=Sprites.bullet, speed=self.bullet_speed, lifetime=self.bullet_lifetime, direction=self.get_direction_to(self.target), shoot_player=False))
+
+    def shoot_around(self):
+        direction: int = 0
+        for i in range(8):
+            direction += 1
+            self.projectiles.append_projectile(Projectile([self._pos_x + self._size_x * 0.5 - self.bullet_size * 0.5 , self._pos_y + self._size_y * 0.5 - self.bullet_size * 0.5], [self.bullet_size,self.bullet_size], sprite=Sprites.bullet, speed=self.bullet_speed, lifetime=self.bullet_lifetime, direction=direction, shoot_player=False))
+            if direction >= 4:
+                direction = 0
+
+    def summon(self):
+        self.enemies.add(Chaser((self._pos_x, self._pos_y), (48,48), Sprites.Boss_summon, self.target))
     
 
 

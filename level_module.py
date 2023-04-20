@@ -25,6 +25,7 @@ class Room():
     CHAR_CHASER = 'C'
     CHAR_SHOOTER = 'S'
     CHAR_BUFF = 'B'
+    CHAR_BOSS = '$'
     MAP = (
         
     )        
