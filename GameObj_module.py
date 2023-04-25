@@ -21,6 +21,13 @@ class GameObject:
     _size_x: int = 48
     _size_y: int = 48
     _color: Colors = Colors.black
+
+    @property
+    def x(self): return self._pos_x + self._size_x * 0.5
+
+    @property
+    def y(self): return self._pos_y + self._size_y * 0.5
+
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], start_color: Colors):
         self.set_position(start_pos)
         self.set_size(start_size)
@@ -313,7 +320,7 @@ class Player(GameObjSprites):
 
     def try_shoot(self, direction: Direction, projectiles:Projectiles):
         if self._can_shoot:
-            projectiles.append_projectile(Projectile([self._pos_x + self._size_x * 0.5 - self.bullet_size * 0.5 , self._pos_y + self._size_y * 0.5 - self.bullet_size * 0.5], [self.bullet_size,self.bullet_size], sprite=Sprites.bullet, speed=self.bullet_speed, lifetime=self.bullet_lifetime, direction=direction, shoot_player=True))
+            projectiles.append_projectile(Projectile([self.x - self.bullet_size * 0.5 , self.y - self.bullet_size * 0.5], [self.bullet_size,self.bullet_size], sprite=Sprites.bullet, speed=self.bullet_speed, lifetime=self.bullet_lifetime, direction=direction, shoot_player=True))
             self._can_shoot = False
             self._cooldown_timer = self.shoot_cooldown
         if self.companion and self.companion.can_shoot:
@@ -352,11 +359,11 @@ class Enemy(GameObjSprites):
             self.target = new_target
 
     def get_distance_to(self, target:GameObject):
-        magnitude = ((target._pos_x - self._pos_x) ** 2 + (target._pos_y - self._pos_y) ** 2) ** 0.5
+        magnitude = ((target.x - self.x) ** 2 + (target.y - self.y) ** 2) ** 0.5
         return(magnitude)
     
     def get_direction_to(self, target:GameObject):
-        direction = (target._pos_x - self._pos_x, target._pos_y - self._pos_y)
+        direction = (target.x - self.x, target.y - self.y)
         return direction    
 
     def draw(self):
@@ -460,7 +467,7 @@ class Shooter(Enemy):
         pass
 
     def try_shoot(self):
-        self.projectiles.append_projectile(CustomProjectile([self._pos_x + self._size_x * 0.5 - self.bullet_size * 0.5 , self._pos_y + self._size_y * 0.5 - self.bullet_size * 0.5], [self.bullet_size,self.bullet_size], sprite=Sprites.bullet, speed=self.bullet_speed, lifetime=self.bullet_lifetime, direction=self.get_direction_to(self.target), shoot_player=False))
+        self.projectiles.append_projectile(CustomProjectile([self.x - self.bullet_size * 0.5 , self.y - self.bullet_size * 0.5], [self.bullet_size,self.bullet_size], sprite=Sprites.bullet, speed=self.bullet_speed, lifetime=self.bullet_lifetime, direction=self.get_direction_to(self.target), shoot_player=False))
 
     def update(self):   
         if self.target:
@@ -661,11 +668,11 @@ class Companion(Buff):
             self.target = new_target
 
     def get_distance_to(self, target:GameObject):
-        magnitude = ((target._pos_x - self._pos_x) ** 2 + (target._pos_y - self._pos_y) ** 2) ** 0.5
+        magnitude = ((target.x - self.x) ** 2 + (target.y - self.y) ** 2) ** 0.5
         return(magnitude)
         
     def get_direction_to(self, target:GameObject):
-        direction = (target._pos_x - self._pos_x, target._pos_y - self._pos_y)
+        direction = (target.x - self.x, target.y - self.y)
         return direction
     
     def move(self):
@@ -695,7 +702,7 @@ class Companion_Shooter(Companion):
 
     def try_shoot(self, direction: Direction, projectiles:Projectiles):
         if self.can_shoot:
-            projectiles.append_projectile(Projectile([self._pos_x + self._size_x * 0.5 - self._size_y * 0.5 , self._pos_y + self._size_y * 0.5 - self.bullet_size * 0.5], [self.bullet_size,self.bullet_size], sprite=Sprites.bullet, speed=self.bullet_speed, lifetime=self.bullet_lifetime, direction=direction, shoot_player=True))
+            projectiles.append_projectile(Projectile([self.x - self._size_y * 0.5 , self.y - self.bullet_size * 0.5], [self.bullet_size,self.bullet_size], sprite=Sprites.bullet, speed=self.bullet_speed, lifetime=self.bullet_lifetime, direction=direction, shoot_player=True))
             self.can_shoot = False
             self.cooldown_timer = self.shoot_cooldown    
 
@@ -768,18 +775,18 @@ class TheBoss(Enemy):
         self._pos_y += self.smooth_clamp(direction[1] * self.speed * Time.delta_time, -100, 100, 1)
 
     def get_dash_point(self) -> GameObject:
-        new_target =  GameObject((self.target._pos_x + self.target._size_x/2, self.target._pos_y + self.target._size_y/2), (10, 10), Colors.red)
+        new_target =  GameObject((self.x, self.target.y), (10, 10), Colors.red)
         return new_target         
 
     def shoot_line(self):
         for i in range(5):
-            self.projectiles.append_projectile(CustomProjectile([self._pos_x + self._size_x * 0.5 - self.bullet_size * 0.5 , self._pos_y + self._size_y * 0.5 - self.bullet_size * 0.5], [self.bullet_size,self.bullet_size], sprite=Sprites.bullet, speed=self.bullet_speed, lifetime=self.bullet_lifetime, direction=self.get_direction_to(self.target), shoot_player=False))
+            self.projectiles.append_projectile(CustomProjectile([self.x - self.bullet_size * 0.5 , self.y - self.bullet_size * 0.5], [self.bullet_size,self.bullet_size], sprite=Sprites.bullet, speed=self.bullet_speed, lifetime=self.bullet_lifetime, direction=self.get_direction_to(self.target), shoot_player=False))
 
     def shoot_around(self):
         direction: int = 0
         for i in range(8):
             direction += 1
-            self.projectiles.append_projectile(Projectile([self._pos_x + self._size_x * 0.5 - self.bullet_size * 0.5 , self._pos_y + self._size_y * 0.5 - self.bullet_size * 0.5], [self.bullet_size,self.bullet_size], sprite=Sprites.bullet, speed=self.bullet_speed, lifetime=self.bullet_lifetime, direction=direction, shoot_player=False))
+            self.projectiles.append_projectile(Projectile([self.x - self.bullet_size * 0.5 , self.y - self.bullet_size * 0.5], [self.bullet_size,self.bullet_size], sprite=Sprites.bullet, speed=self.bullet_speed, lifetime=self.bullet_lifetime, direction=direction, shoot_player=False))
             if direction >= 4:
                 direction = 0
 
