@@ -747,12 +747,29 @@ class TheBoss(Enemy):
     bullet_lifetime: float = 3
     bullet_speed: int = 1
     bullet_size: int = 25
+    in_cooldown: bool = False
+    cooldown_timer: float = 2
+    cooldown_timer_comeback = 2
+    dash_timer: float = 1
+    dash_timer_comeback: float = 1
+    in_dash: bool = False
+
 
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image, target: Player, projectiles: Projectiles, enemies: Enemies):
         self.target = target
         self.projectiles = projectiles
         self.enemies = enemies
+        self.dash_point = self.get_dash_point()
         super().__init__(start_pos, start_size, sprite)
+
+    def move(self):
+        direction = self.get_direction_to(self.dash_point)
+        self._pos_x += self.smooth_clamp(direction[0] * self.speed * Time.delta_time, -100, 100, 1)
+        self._pos_y += self.smooth_clamp(direction[1] * self.speed * Time.delta_time, -100, 100, 1)
+
+    def get_dash_point(self) -> GameObject:
+        new_target =  GameObject((self.target._pos_x + self.target._size_x/2, self.target._pos_y + self.target._size_y/2), (10, 10), Colors.red)
+        return new_target         
 
     def shoot_line(self):
         for i in range(5):
@@ -768,6 +785,44 @@ class TheBoss(Enemy):
 
     def summon(self):
         self.enemies.add(Chaser((self._pos_x, self._pos_y), (48,48), Sprites.Boss_summon, self.target))
+
+    def dash(self):
+        self.dash_point = self.get_dash_point()
+        self.in_dash = True    
+
+    def random_action(self):
+        random_number = random.randint(1, 10)
+        if random_number < 2:
+            self.summon()
+        elif random_number < 6:
+            self.dash()
+        elif random_number < 8:
+            self.shoot_around()
+        else:
+            self.shoot_line()    
+
+    def update(self):
+        if not self.in_cooldown:
+            self.random_action()
+            self.in_cooldown = True
+        if self.in_cooldown:
+            self.cooldown_timer -= Time.delta_time
+            if self.cooldown_timer <= 0:
+                self.in_cooldown = False
+                self.cooldown_timer = self.cooldown_timer_comeback
+        if self.in_dash:
+            self.dash_timer -= Time.delta_time
+            self.move()
+            if self.dash_timer <= 0:
+                self.in_dash = False
+                self.dash_timer = self.dash_timer_comeback
+                self.in_cooldown = True
+
+    def draw(self):
+        super().draw()
+        self.dash_point.draw()             
+
+
     
 
 
