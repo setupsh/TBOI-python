@@ -667,11 +667,11 @@ class Companion(Buff):
             self.target = new_target
 
     def get_distance_to(self, target:GameObject):
-        magnitude = ((target._pos_x - self._pos_x) ** 2 + (target._pos_y - self._pos_y) ** 2) ** 0.5
+        magnitude = ((target.x - self.x) ** 2 + (target.y - self.y) ** 2) ** 0.5
         return(magnitude)
         
     def get_direction_to(self, target:GameObject):
-        direction = (target._pos_x - self._pos_x, target._pos_y - self._pos_y)
+        direction = (target.x - self.x, target.y - self.y)
         return direction
     
     def move(self):
