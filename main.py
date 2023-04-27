@@ -33,7 +33,7 @@ class GameMap():
     def buffs(self): return self.current_room.buffs
 
     def __init__(self) -> None:
-        self.current_level = Level(iterartion=2)
+        self.current_level = Level(iterartion=1)
         self.current_room = self.current_level.get_room(0)
     
     def go_to_next_room(self, direction: Direction):
@@ -260,7 +260,7 @@ def game_loop():
     if (Inpunting.is_key_right_pressed):      
         gamemap.player.try_shoot(Direction.Right, gamemap.projectiles)
 
-    if (Inpunting.is_key_space_pressed):
+    if (Inpunting.is_key_space_pressed) and gamemap.player.active_buff:
         gamemap.player.active_buff.use()
 
     if (Inpunting.is_key_tilda_pressed):

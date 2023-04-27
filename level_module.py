@@ -109,6 +109,7 @@ class Room():
 
 class Level():
     baseroom: Room
+    boss_room_is_appear: bool = False
     rooms: dict[int, Room]
     transistions: dict[str, int] = {}
 
@@ -137,8 +138,10 @@ class Level():
             self.create_node(room)
             new_rooms.update(self.get_neighbour_rooms(room))
 
+
+
         if self.iteration > 0:
-            self.expand(new_rooms)        
+            self.expand(new_rooms)
 
     def create_node(self, room: Room):
         self.rooms[room.id] = room
@@ -160,10 +163,18 @@ class Level():
         return neighbour_rooms        
 
     def find_neighbour_room(self, centere_room: Room, door_in: Door):
-        new_room: Room = Room(self.load_random_room_layout())
         has_door_out: bool = False
-        if new_room.layout == centere_room.layout:
-            new_room = self.find_neighbour_room(centere_room, door_in)
+        print(self.iteration)
+        print(self.boss_room_is_appear)
+
+        if self.iteration == 0 and not self.boss_room_is_appear:
+            self.boss_room_is_appear = True
+            new_room: Room = Room(self.load_room_layout(1))
+        else:
+            new_room: Room = Room(self.load_random_room_layout())
+            if new_room.layout == centere_room.layout:
+                new_room = self.find_neighbour_room(centere_room, door_in)
+
         for door in new_room.get_blocks_of_type(Door):
             door: Door
             if door.direction == door_in.alternative_direction:
@@ -171,7 +182,10 @@ class Level():
             elif self.iteration < 2:
                 new_room.replace_block(door, Wall((door._pos_x, door._pos_y)))
         if not has_door_out:
-            new_room = self.find_neighbour_room(centere_room, door_in)
+            if self.iteration == 0 and not self.boss_room_is_appear:
+                pass
+            else:
+                new_room = self.find_neighbour_room(centere_room, door_in)
         return new_room
         
     def get_room(self, room_id: int) -> Room:
