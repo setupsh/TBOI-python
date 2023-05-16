@@ -157,11 +157,23 @@ class Projectile(GameObjSprites):
 class CustomProjectile(Projectile):
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image, speed: int, lifetime: float, direction: tuple[int,int], shoot_player: bool):
         super().__init__(start_pos, start_size, sprite, speed, lifetime, direction, shoot_player)    
+        self.magnitude = self.get_magnitude()
 
+    def get_distance_to(self, target:tuple[int,int]):
+        magnitude = ((target[0] - self.x) ** 2 + (target[1] - self.y) ** 2) ** 0.5
+        return(magnitude)
+    def get_magnitude(self):
+        magnitude = self.get_distance_to(self.direction)
+        if (magnitude <= 50 or magnitude == 0):
+            magnitude = 1
+        print(magnitude)    
+        return magnitude
     def move(self):
-        self._pos_x += self.direction[0] * self.speed * Time.delta_time
-        self._pos_y += self.direction[1] * self.speed * Time.delta_time             
+        self._pos_x += (self.direction[0] / self.magnitude) * self.speed * Time.delta_time
+        self._pos_y += (self.direction[1] / self.magnitude) * self.speed * Time.delta_time
 
+    def draw(self):
+        super().draw()
 
 class Projectiles:
     
@@ -328,7 +340,7 @@ class Player(GameObjSprites):
 
 class Enemy(GameObjSprites):
     health: int = 3
-    speed: float = 2.0
+    speed: int = 100
     damage: int = 1
     is_dead: bool = False
 
@@ -341,18 +353,6 @@ class Enemy(GameObjSprites):
         if self.target:
             if self.get_distance_to(self.target) > 50:
                 self.move()
-
-    def clamp_number(self, num, a, b):
-        return max(min(num, max(a,b)), min(a,b)) 
-    
-    def smooth_clamp(self, value, min_value, max_value, smooth_factor):
-        range_value = max_value - min_value
-        clamped_value = max(min(value, max_value), min_value)
-        normalized_value = (clamped_value - min_value) / range_value
-        smoothed_value = math.pow(normalized_value, smooth_factor)
-        return (smoothed_value * range_value) + min_value         
-
-    def smoothclamp(self, x, mi, mx): return mi + (mx-mi)*(lambda t: np.where(t < 0 , 0, np.where( t <= 1 , 3*t**2-2*t**3, 1 ) ) )( (x-mi)/(mx-mi) )
 
     def set_target(self, new_target: GameObject):
         if new_target:
@@ -371,8 +371,9 @@ class Enemy(GameObjSprites):
 
     def move(self):
         direction = self.get_direction_to(self.target)
-        self._pos_x += self.smooth_clamp(direction[0] * self.speed * Time.delta_time, -100, 100, 1)
-        self._pos_y += self.smooth_clamp(direction[1] * self.speed * Time.delta_time, -100, 100, 1)
+        magnitude = self.get_distance_to(self.target)
+        self._pos_x += (direction[0] / magnitude) * self.speed * Time.delta_time
+        self._pos_y += (direction[1] / magnitude) * self.speed * Time.delta_time
 
     def attack(self, target: GameObject):
         if type(target) == Player:
@@ -425,7 +426,7 @@ class PsychoMover(Enemy):
 
 class Chaser(Enemy):
     health: int = 3
-    speed: float = 1
+    speed: float = 100
     timer: float = 1
     in_cooldown: bool = False
 
@@ -449,11 +450,11 @@ class Chaser(Enemy):
 
 class Shooter(Enemy):
     health: int = 2
-    speed: float = 0.1
+    speed: float = 100
     comeback_time: float = 1.5
     timer = comeback_time
     bullet_lifetime: float = 3
-    bullet_speed: int = 1
+    bullet_speed: int = 500
     bullet_size: int = 25
     shoot_trigger_distance: int = 400
     in_cooldown: bool = True
@@ -752,7 +753,7 @@ class Orbital(Companion):
 
 class TheBoss(Enemy):
     health = 30
-    speed: float = 5
+    speed: float = 300
     bullet_lifetime: float = 3
     bullet_speed: int = 1
     bullet_size: int = 25
@@ -772,9 +773,10 @@ class TheBoss(Enemy):
         super().__init__(start_pos, start_size, sprite)
 
     def move(self):
+        magnitude = self.get_distance_to(self.dash_point)
         direction = self.get_direction_to(self.dash_point)
-        self._pos_x += self.smooth_clamp(direction[0] * self.speed * Time.delta_time, -100, 100, 1)
-        self._pos_y += self.smooth_clamp(direction[1] * self.speed * Time.delta_time, -100, 100, 1)
+        self._pos_x += (direction[0] / magnitude) * self.speed * Time.delta_time
+        self._pos_y += (direction[1] / magnitude) * self.speed * Time.delta_time
 
     def get_dash_point(self) -> GameObject:
         new_target =  GameObject((self.target.x, self.target.y), (10, 10), Colors.red)
