@@ -14,6 +14,7 @@ class Inpunting:
     is_key_d_pressed: bool = False
     is_key_space_pressed: bool = False
     is_key_tilda_pressed: bool = False
+    is_mouse_pressed: bool = False
 
 def get():
     for event in pygame.event.get():
@@ -56,7 +57,11 @@ def get():
                 Inpunting.is_key_space_pressed = True
 
             if event.key == pygame.K_F3:
-                Inpunting.is_key_tilda_pressed = True        
+                Inpunting.is_key_tilda_pressed = True 
+
+            if event.key == pygame.MOUSEBUTTONDOWN:
+                print(10)         
+                Inpunting.is_mouse_pressed = True  
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT:
@@ -96,4 +101,7 @@ def get():
                 Inpunting.is_key_space_pressed = False
 
             if event.key == pygame.K_F3:
-                Inpunting.is_key_tilda_pressed = False            
+                Inpunting.is_key_tilda_pressed = False
+
+            if event.key == pygame.MOUSEBUTTONUP:
+                Inpunting.is_mouse_pressed = False                

@@ -30,7 +30,6 @@ class Room():
         
     )        
 
-    player = Player(start_pos=(scr_width * 0.5 - 24, scr_height * 0.5 - 24 ), start_size=(48,48), sprite=Sprites.player)
 
     def __init__(self, layout: list[str]):
         self.id = hash(self)
@@ -53,17 +52,17 @@ class Room():
                 if c == self.CHAR_FULL:
                     self.blocks.append(Wall([x, y]))
                 elif c == self.CHAR_SHOOTER:
-                    self.enemies.add(Shooter((x, y), (48,48), Sprites.normal_enemy, self.player, self.projectiles))
+                    self.enemies.add(Shooter((x, y), (48,48), Sprites.normal_enemy, Level.player, self.projectiles))
                 elif c == self.CHAR_CHASER:
-                    self.enemies.add(Chaser((x, y), (48,48), Sprites.hard_enemy, self.player))
+                    self.enemies.add(Chaser((x, y), (48,48), Sprites.hard_enemy, Level.player))
                 elif c == self.CHAR_PSYCHO:
-                    self.enemies.add(PsychoMover((x,y), (48,48), Sprites.easy_enemy, self.player))
+                    self.enemies.add(PsychoMover((x,y), (48,48), Sprites.easy_enemy, Level.player))
                 elif c == self.CHAR_BOSS:
-                    self.enemies.add(TheBoss((x, y), (128, 128), Sprites.Boss, self.player, self.projectiles, self.enemies))                    
+                    self.enemies.add(TheBoss((x, y), (128, 128), Sprites.Boss, Level.player, self.projectiles, self.enemies))                    
                 elif c == self.CHAR_BUFF:
                     buff = random.choice((Companion_Shooter, Orbital, DeadDetonator, Vampirism, RPG7, MedKit, LIFEUP, FunGhost, None))
                     if buff:
-                        self.buffs.append_projectile(buff((x,y), self.player))        
+                        self.buffs.append_projectile(buff((x,y), Level.player))        
                 elif c == self.CHAR_DOOR:
                     start_dir: Direction
                     if i == 0:
@@ -91,7 +90,7 @@ class Room():
         return result        
                 
     def update(self):
-        self.player.update()                
+        Level.player.update()                
         self.projectiles.update()
         self.particles.update()
         self.enemies.update()
@@ -101,13 +100,14 @@ class Room():
             i.draw()    
         for i in self.blocks:
             i.draw()
-        self.player.draw()                
+        Level.player.draw()                
         self.projectiles.draw()
         self.particles.draw()
         self.enemies.draw()
         self.buffs.draw()
 
 class Level():
+    player = Player(start_pos=(scr_width * 0.5 - 24, scr_height * 0.5 - 24 ), start_size=(48,48), sprite=Sprites.player)
     baseroom: Room
     boss_room_is_appear: bool = False
     rooms: dict[int, Room]
@@ -124,6 +124,7 @@ class Level():
         self.generate()
 
     def generate(self):
+        Level.player = Player(start_pos=(scr_width * 0.5 - 24, scr_height * 0.5 - 24 ), start_size=(48,48), sprite=Sprites.player)
         self.rooms = {}
         self.baseroom = Room(self.load_room_layout(0))
         self.create_node(self.baseroom)

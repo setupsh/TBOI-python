@@ -22,7 +22,7 @@ mixerinit()
 class GameMap():
 
     @property
-    def player(self): return self.current_room.player
+    def player(self): return self.current_level.player
     @property
     def enemies(self): return self.current_room.enemies
     @property
@@ -123,8 +123,9 @@ class GameObserver:
     def reset_game():
         GameObserver.game_is_active = False
         GameObserver.game_is_paused = False
-        GameObserver.timer = 0
         GameObserver.game_is_over = False
+        global gamemap
+        gamemap = GameMap()
     def game_over():
         GameObserver.game_is_over = True
         Sound.PlayOne(Sounds.Horse)
@@ -193,15 +194,25 @@ class GameUi:
     #TODO: Очки и здоровье
     game_canvas: Canvas = Canvas()
     gameover_canvas: Canvas = Canvas()
+    pause_canvas: Canvas = Canvas()
 
     _gameover_title: GuiLabel = GuiLabel ([scr_width/2,scr_height/2], 'Ты проиграл', Colors.white)
     _game_life_label: GuiLabel = GuiLabel([0,0], f'score ', Colors.white, horizontal = HorizontalAlignment.Left, vertical = VerticalAlignment.Top)
     _active_buff_label: GuiLabel = GuiLabel([scr_width,0], f'', Colors.white, horizontal = HorizontalAlignment.Right, vertical = VerticalAlignment.Top)
-    
+    _menu_cont_btn: Button = Button([scr_width/2, scr_height/2],obvodka([0,0], 256,64, Colors.black),GuiLabel([0,0], 'Продолжить', color = Colors.white), GameObserver.continue_game)
+    _gameover_restart_btn: Button = Button([scr_width/2, scr_height/2 + 50], obvodka([0,0], 128, 64, Colors.black), GuiLabel([0,0], 'Ладно.', color = Colors.white), GameObserver.restart_game)
+
+    gameover_navigation: List[Button] = [_gameover_restart_btn]
+    pause_navigation: List[Button] = [_menu_cont_btn]
+    selected_navigation: Button = pause_navigation[0]
+    navigation_index = 0
     def __init__(self) -> None:
         self.gameover_canvas.extend_el([self._gameover_title])
         self.game_canvas.extend_el([self._game_life_label, self._active_buff_label])
+        self.gameover_canvas.extend_el([self._gameover_restart_btn, self._gameover_title])
+        self.pause_canvas.extend_el([self._menu_cont_btn])
     def update(self):
+        self.pause_canvas.update()
         self._game_life_label.set_label(f'{gamemap.player.health}')
         if gamemap.player.active_buff:
             self._active_buff_label.set_label(f'{gamemap.player.active_buff.name}:{gamemap.player.active_buff.current_charges}')
@@ -210,7 +221,10 @@ class GameUi:
         self.game_canvas.draw()
 
     def draw_gameover(self):
-        self.gameover_canvas.draw()   
+        self.gameover_canvas.draw()  
+
+    def draw_pause(self):
+        self.pause_canvas.draw()     
 
 gameui = GameUi()
 gamemap = GameMap()
@@ -264,7 +278,10 @@ def game_loop():
         gamemap.player.active_buff.use()
 
     if (Inpunting.is_key_tilda_pressed):
-        debug_console.get_command()           
+        debug_console.get_command()
+
+    if(Inpunting.is_key_esc_pressed):
+        GameObserver.game_is_paused = True               
 
     if GameObserver.player_block_collide(gamemap, gamemap.player, Direction.Left):
         gamemap.player.left_acceleration = 0
@@ -292,15 +309,44 @@ def game_loop():
 
 def game_over_loop():
     screen.fill(Colors.black)
-    gameui.draw_gameover()  
+    def select_button(direction):
+        gameui.navigation_index += direction
+        if gameui.navigation_index < 0:
+            gameui.navigation_index = len(gameui.gameover_navigation) - 1
+        if gameui.navigation_index > len(gameui.gameover_navigation) - 1:
+            gameui.navigation_index = 0
+        gameui.selected_navigation.deselect()
+        gameui.selected_navigation = gameui.gameover_navigation[gameui.navigation_index]
+        gameui.selected_navigation.select()
+    gameui.draw_gameover() 
+    if (Inpunting.is_key_up_pressed): select_button(-1) 
+    Inpunting.is_key_up_pressed = False
 
-def main_menu_loop():
-    screen.fill(Colors.black)
-    print(1)
+    if (Inpunting.is_key_down_pressed): select_button(+1)
+    Inpunting.is_key_down_pressed = False
 
-def win_screen_loop():
-    screen.fill(Colors.black)
-    gameui.draw_win()
+    if (Inpunting.is_key_enter_pressed): gameui.selected_navigation.press()
+    Inpunting.is_key_enter_pressed = False  
+
+def pause_loop():
+    def select_button(direction):
+        gameui.navigation_index += direction
+        if gameui.navigation_index < 0:
+            gameui.navigation_index = len(gameui.pause_navigation) - 1
+        if gameui.navigation_index > len(gameui.pause_navigation) - 1:
+            gameui.navigation_index = 0
+        gameui.selected_navigation.deselect()
+        gameui.selected_navigation = gameui.pause_navigation[gameui.navigation_index]
+        gameui.selected_navigation.select()
+    gameui.draw_pause()    
+    if (Inpunting.is_key_up_pressed): select_button(-1) 
+    Inpunting.is_key_up_pressed = False
+
+    if (Inpunting.is_key_down_pressed): select_button(+1)
+    Inpunting.is_key_down_pressed = False
+
+    if (Inpunting.is_key_enter_pressed): gameui.selected_navigation.press()
+    Inpunting.is_key_enter_pressed = False
 
 while True:
     get_events()
@@ -313,11 +359,11 @@ while True:
                 
                 else: game_over_loop()
             else:
-                win_screen_loop()    
+                pass    
         else:
-            pass
+            pause_loop()
     else:
-        main_menu_loop()
+        pass
     
     pygame.display.update()  
     Time.update()

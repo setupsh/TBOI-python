@@ -268,8 +268,9 @@ class Player(GameObjSprites):
 
     def revive(self):
         self.set_hp(3)
-        self.in_invicible = True    
-
+        self.in_invicible = True
+        self.lifes -= 1
+        self.is_dead = False
     def heal(self, amount):
         self.health += amount
         if self.health > self.max_health:
@@ -682,7 +683,7 @@ class Companion(Buff):
 
 
 class Companion_Shooter(Companion):
-    defualt_sprite: pygame.image = Sprites.DeadDetonator
+    defualt_sprite: pygame.image = Sprites.wizard
     speed: float = 1
 
     can_shoot: bool = True

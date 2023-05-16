@@ -22,7 +22,8 @@ class Sprites:
     fun_ghost = load_sprite('\\fun_ghost.png')
     LIFEUP = load_sprite('\\LIFEUP.png')
     Vampirism = load_sprite('\\vampirism.png')
-    DeadDetonator = load_sprite('\\wizard.png')
+    DeadDetonator = load_sprite('\\dead_detonator.png')
+    wizard = load_sprite('\\wizard.png')
     Boss = load_sprite('\\gorox.png')
     Boss_summon = load_sprite('\\little_gorox.png')
 class BackGrounds:

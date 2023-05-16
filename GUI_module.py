@@ -5,6 +5,7 @@ import colorlib as Color
 import pygame
 from screen_module import screen 
 from enum import Enum
+from events_module import *
 
 class VerticalAlignment(Enum):
     Top = 0,
@@ -52,7 +53,8 @@ class GuiComponent(ABC):
 
                 
 
-
+    def update(self):
+        pass
     @abstractmethod
     def draw(self):
         pass
@@ -96,7 +98,10 @@ class Canvas():
         self.GUIElements.clear()
     def draw(self):
         for i in self.GUIElements:
-            i.draw()               
+            i.draw()
+    def update(self):
+        for i in self.GUIElements:
+            i.update()                          
 class obvodka(GuiComponent):
 
     width = 0
@@ -120,11 +125,11 @@ class obvodka(GuiComponent):
         self.aligh(self.width, self.height)
     rect: pygame.Rect = None
     def draw(self):
-        self.rect = pygame.draw.rect(screen, self.color, (self.position_x, self.position_y, self.width, self.height))    
+        self.rect = pygame.draw.rect(screen, self.color, (self.position_x, self.position_y, self.width, self.height))   
+
 class Button(GuiComponent):
     defualtbgcolor = Color.white
     onpressbgcolor = Color.red
-
     on_press_method = None
     def __init__(self, position: Tuple[int, int], background: obvodka, caption: GuiLabel, on_press, horizontal: HorizontalAlignment = HorizontalAlignment.Center, vertical: VerticalAlignment = VerticalAlignment.Center) -> None:
         super().__init__(position, horizontal, vertical)
@@ -151,4 +156,16 @@ class Button(GuiComponent):
     def select(self):
         self.background.set_color(Color.green)
     def deselect(self):
-        self.background.set_color(Color.black)   
+        self.background.set_color(Color.black)
+    def highlight(self):
+        self.background.set_color(Color.green)       
+    @property
+    def get_mouse_pos(self): return pygame.mouse.get_pos()
+
+    def mosue_check_colission(self):  
+        return (self.get_mouse_pos[0] >= self.position_x) and (self.get_mouse_pos[0] < self.position_x + self.background.width) and (self.get_mouse_pos[1] < self.position_y + self.background.height ) and (self.get_mouse_pos[1] >= self.position_y)
+    def update(self):
+        if self.mosue_check_colission() and Inpunting.is_mouse_pressed:
+            self.press()
+        if self.mosue_check_colission():
+            self.highlight()    
