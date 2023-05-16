@@ -59,9 +59,9 @@ def get():
             if event.key == pygame.K_F3:
                 Inpunting.is_key_tilda_pressed = True 
 
-            if event.key == pygame.MOUSEBUTTONDOWN:
-                print(10)         
-                Inpunting.is_mouse_pressed = True  
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            print(10)         
+            Inpunting.is_mouse_pressed = True  
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT:
@@ -103,5 +103,5 @@ def get():
             if event.key == pygame.K_F3:
                 Inpunting.is_key_tilda_pressed = False
 
-            if event.key == pygame.MOUSEBUTTONUP:
-                Inpunting.is_mouse_pressed = False                
+        if event.type == pygame.MOUSEBUTTONUP:
+            Inpunting.is_mouse_pressed = False                
