@@ -338,6 +338,7 @@ def pause_loop():
         gameui.selected_navigation.deselect()
         gameui.selected_navigation = gameui.pause_navigation[gameui.navigation_index]
         gameui.selected_navigation.select()
+    gameui.update()
     gameui.draw_pause()    
     if (Inpunting.is_key_up_pressed): select_button(-1) 
     Inpunting.is_key_up_pressed = False

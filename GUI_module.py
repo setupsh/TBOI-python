@@ -163,9 +163,11 @@ class Button(GuiComponent):
     def get_mouse_pos(self): return pygame.mouse.get_pos()
 
     def mosue_check_colission(self):  
-        return (self.get_mouse_pos[0] >= self.position_x) and (self.get_mouse_pos[0] < self.position_x + self.background.width) and (self.get_mouse_pos[1] < self.position_y + self.background.height ) and (self.get_mouse_pos[1] >= self.position_y)
+        return (self.get_mouse_pos[0] >= self.position_x - self.background.width * 0.5) and (self.get_mouse_pos[0] < self.position_x + self.background.width * 0.5) and (self.get_mouse_pos[1] < self.position_y + self.background.height * 0.5) and (self.get_mouse_pos[1] >= self.position_y - self.background.height * 0.5)
     def update(self):
         if self.mosue_check_colission() and Inpunting.is_mouse_pressed:
             self.press()
         if self.mosue_check_colission():
-            self.highlight()    
+            self.highlight()
+        else:
+            self.deselect()        

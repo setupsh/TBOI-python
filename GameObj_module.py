@@ -8,6 +8,7 @@ from sprite_module import Sprites
 import random
 import math
 import numpy as np
+from animation_module import *
 
 class Direction(Enum):
     Up = 0
@@ -400,13 +401,15 @@ class Enemy(GameObjSprites):
 
 class PsychoMover(Enemy):
     health: int = 3
-    speed: float = 1
+    speed: float = 100
     road_to_the_dream: int = 300
 
     def __init__(self, start_pos: tuple[int, int], start_size: tuple[int, int], sprite: pygame.image, target_to_beat: GameObject):
         self.target_to_beat = target_to_beat
         super().__init__(start_pos, start_size, sprite)
+        self.animator = Animator((self.sprite, Sprites.fun_ghost), (Sprites.door, Sprites.wizard), (self.sprite))
         self.set_target(self.get_random_point())
+        self.animator.set_animation(Sequences.Walk)
 
     def get_random_point(self) -> GameObject:
         new_target =  GameObject((random.randint(0, scr_width - self._size_x), random.randint(0, scr_height - self._size_y)), (10, 10), Colors.red)
@@ -415,6 +418,8 @@ class PsychoMover(Enemy):
         return new_target     
     
     def update(self):
+        if self.animator.update():
+            self.set_sprite(self.animator.get_updated_frame())
         if self.target:
             if self.get_distance_to(self.target) > 30:
                 self.move()
